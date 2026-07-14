@@ -17,6 +17,7 @@ import torch
 from teachability_compiler.predictor import RidgeTransitionPredictor
 from teachability_compiler.real.model import DecoderConfig
 from teachability_compiler.real.oracle import RealLearnerOracle
+from teachability_compiler.real.persistence import probe_suite_hash, save_transitions
 from teachability_compiler.real.tasks import VOCAB_SIZE, all_cluster_names
 from teachability_compiler.state import CurriculumAction, TransitionObservation
 
@@ -46,6 +47,8 @@ def main() -> None:
     oracle.pretrain(n_steps=args.pretrain_steps, rng_seed=args.seed + 1)
     checkpoint = oracle.snapshot()
 
+    transitions: list[TransitionObservation] = []
+
     observations: list[TransitionObservation] = []
     for _ in range(args.train_rollouts):
         oracle.restore(checkpoint)
@@ -53,7 +56,9 @@ def main() -> None:
             rng, cluster_names, args.rollout_horizon, args.steps, oracle
         )
         for action in sequence:
-            observations.append(oracle.apply_action(action, data_seed=_next_seed(rng)))
+            observation = oracle.apply_action(action, data_seed=_next_seed(rng))
+            observations.append(observation)
+            transitions.append(observation)
             overhead_steps += args.steps
             overhead_tokens += args.steps * oracle.batch_size * oracle.seq_len
 
@@ -91,6 +96,7 @@ def main() -> None:
         for action in actions:
             observation = oracle.apply_action(action, data_seed=_next_seed(rng))
             true_probes.append(observation.state_after.probe_losses.copy())
+            transitions.append(observation)
             overhead_steps += args.steps
             overhead_tokens += args.steps * oracle.batch_size * oracle.seq_len
 
@@ -115,6 +121,7 @@ def main() -> None:
         steps=args.steps,
         overhead_steps=overhead_steps,
         overhead_tokens=overhead_tokens,
+        transitions=transitions,
     )
 
     per_depth, horizon = _summarize_depths(
@@ -140,6 +147,7 @@ def main() -> None:
             "target_checkpoint": f"pretrain-{args.pretrain_steps}steps-seed{args.seed}",
             "simulator_version": "none:measurement-only",
             "environment_version": "real-v1",
+            "probe_suite_hash": probe_suite_hash(),
             "args": vars(args),
         },
         "overhead": {
@@ -154,6 +162,19 @@ def main() -> None:
     out_path.write_text(json.dumps(output, indent=2, sort_keys=True), encoding="utf-8")
     _print_summary(per_depth, horizon, baseline_horizon)
 
+    if args.save_transitions is not None:
+        save_transitions(
+            args.save_transitions,
+            transitions,
+            {
+                "experiment": "linearization_horizon",
+                "pretrain_steps": args.pretrain_steps,
+                "seed": args.seed,
+                "probe_suite_hash": probe_suite_hash(),
+                "git_commit": _git_commit(),
+            },
+        )
+
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -166,6 +187,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out", type=str, default="results/linearization_horizon.json")
+    parser.add_argument("--save-transitions", type=str, default=None)
     args = parser.parse_args()
 
     if args.train_rollouts <= 0:
@@ -241,6 +263,7 @@ def _measure_noise_floor(
     steps: int,
     overhead_steps: int,
     overhead_tokens: int,
+    transitions: list[TransitionObservation],
 ) -> tuple[list[float], int, int]:
     actions = _random_action_sequence(rng, cluster_names, max_horizon, steps, oracle)
     duplicate_rollouts: list[list[np.ndarray]] = []
@@ -251,6 +274,7 @@ def _measure_noise_floor(
         for action in actions:
             observation = oracle.apply_action(action, data_seed=_next_seed(rng))
             probes_at_depth.append(observation.state_after.probe_losses.copy())
+            transitions.append(observation)
             overhead_steps += steps
             overhead_tokens += steps * oracle.batch_size * oracle.seq_len
         duplicate_rollouts.append(probes_at_depth)

@@ -1,0 +1,236 @@
+{
+  "horizons": {
+    "baseline": 3,
+    "ridge": 0
+  },
+  "overhead": {
+    "total_optimizer_steps": 14544,
+    "total_tokens": 59572224,
+    "wall_seconds": 438.14119462698
+  },
+  "per_depth": [
+    {
+      "baseline": {
+        "kendall_tau": 0.4631578947368421,
+        "selected_regret": 0.0,
+        "top1_agreement": 1.0,
+        "top3_recall": 0.6666666666666666
+      },
+      "baseline_per_prefix": [
+        {
+          "kendall_tau": 0.47368421052631576,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": 0.45263157894736844,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": 0.47368421052631576,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": 0.45263157894736844,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        }
+      ],
+      "depth": 1,
+      "ridge": {
+        "kendall_tau": 0.6052631578947368,
+        "selected_regret": 0.3348648894578219,
+        "top1_agreement": 0.0,
+        "top3_recall": 0.3333333333333333
+      },
+      "ridge_per_prefix": [
+        {
+          "kendall_tau": 0.6,
+          "selected_regret": 0.3288634374737739,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.6210526315789474,
+          "selected_regret": 0.334246100485325,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.6,
+          "selected_regret": 0.33572880029678354,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.6,
+          "selected_regret": 0.34062121957540514,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        }
+      ]
+    },
+    {
+      "baseline": {
+        "kendall_tau": 0.31842105263157894,
+        "selected_regret": 0.0,
+        "top1_agreement": 1.0,
+        "top3_recall": 0.41666666666666663
+      },
+      "baseline_per_prefix": [
+        {
+          "kendall_tau": 0.35789473684210527,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.4421052631578947,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": 0.2,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.2736842105263158,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        }
+      ],
+      "depth": 2,
+      "ridge": {
+        "kendall_tau": 0.1368421052631579,
+        "selected_regret": 0.3442347310483456,
+        "top1_agreement": 0.25,
+        "top3_recall": 0.41666666666666663
+      },
+      "ridge_per_prefix": [
+        {
+          "kendall_tau": 0.11578947368421053,
+          "selected_regret": 0.11876125931739812,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.26842105263157895,
+          "selected_regret": 0.43702562451362614,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": -0.02631578947368421,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.18947368421052632,
+          "selected_regret": 0.8211520403623582,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        }
+      ]
+    },
+    {
+      "baseline": {
+        "kendall_tau": 0.3236842105263158,
+        "selected_regret": 0.0,
+        "top1_agreement": 1.0,
+        "top3_recall": 0.41666666666666663
+      },
+      "baseline_per_prefix": [
+        {
+          "kendall_tau": 0.43157894736842106,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.6666666666666666
+        },
+        {
+          "kendall_tau": 0.2,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.23157894736842105,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.43157894736842106,
+          "selected_regret": 0.0,
+          "top1_agreement": 1.0,
+          "top3_recall": 0.3333333333333333
+        }
+      ],
+      "depth": 3,
+      "ridge": {
+        "kendall_tau": 0.05394736842105263,
+        "selected_regret": 0.9873509097844362,
+        "top1_agreement": 0.0,
+        "top3_recall": 0.08333333333333333
+      },
+      "ridge_per_prefix": [
+        {
+          "kendall_tau": 0.11578947368421053,
+          "selected_regret": 0.22574131637811667,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.3333333333333333
+        },
+        {
+          "kendall_tau": 0.1368421052631579,
+          "selected_regret": 0.891692042350769,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.0
+        },
+        {
+          "kendall_tau": -0.03684210526315789,
+          "selected_regret": 0.9265670925378799,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.0
+        },
+        {
+          "kendall_tau": 0.0,
+          "selected_regret": 1.9054031878709792,
+          "top1_agreement": 0.0,
+          "top3_recall": 0.0
+        }
+      ]
+    }
+  ],
+  "provenance": {
+    "args": {
+      "depths": 3,
+      "device": "cuda:0",
+      "out": "results/decision_horizon_10k.json",
+      "prefixes": 4,
+      "pretrain_steps": 10000,
+      "rollout_horizon": 8,
+      "save_transitions": "results/transitions/dh_10k.pkl",
+      "seed": 0,
+      "steps": 8,
+      "train_rollouts": 40
+    },
+    "config_hash": "a315e5636d6d869c",
+    "environment_version": "real-v1",
+    "git_commit": "b9479b26f61d354abd07c7ee392d860048cbb1b2",
+    "probe_suite_hash": "ee7918e62d630274",
+    "seed": 0,
+    "simulator_version": "ridge-v1",
+    "target_checkpoint": "pretrain-10000steps-seed0"
+  },
+  "train_transition_count": 320
+}

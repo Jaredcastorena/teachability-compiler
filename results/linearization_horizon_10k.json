@@ -1,0 +1,129 @@
+{
+  "linearization_horizon": 3,
+  "overhead": {
+    "total_optimizer_steps": 13392,
+    "total_tokens": 54853632,
+    "wall_seconds": 376.5187982219795
+  },
+  "per_depth": [
+    {
+      "baseline_median_error": 4.095396520535823,
+      "baseline_p90_error": 6.044932235992305,
+      "baseline_relative_error_median": 3.933787396038215,
+      "depth": 1.0,
+      "median_error": 1.2161321662141822,
+      "median_true_delta_from_start": 0.8650449482108533,
+      "noise_floor_median": 0.5233937086499514,
+      "p90_error": 2.317963889719374,
+      "relative_error_median": 1.407880036398955,
+      "threshold": 1.0467874172999028
+    },
+    {
+      "baseline_median_error": 6.657995111526429,
+      "baseline_p90_error": 10.46331357457267,
+      "baseline_relative_error_median": 3.4655686540649517,
+      "depth": 2.0,
+      "median_error": 5.411027074668938,
+      "median_true_delta_from_start": 1.684066998764321,
+      "noise_floor_median": 1.7572153165641928,
+      "p90_error": 10.102024357089377,
+      "relative_error_median": 3.003009300608193,
+      "threshold": 3.5144306331283857
+    },
+    {
+      "baseline_median_error": 8.027645891020992,
+      "baseline_p90_error": 11.88444454778758,
+      "baseline_relative_error_median": 2.2533277964484815,
+      "depth": 3.0,
+      "median_error": 6.302749284688009,
+      "median_true_delta_from_start": 3.361759404961834,
+      "noise_floor_median": 5.2613642126165505,
+      "p90_error": 10.67874843755719,
+      "relative_error_median": 1.807525472388603,
+      "threshold": 10.522728425233101
+    },
+    {
+      "baseline_median_error": 9.230755598426093,
+      "baseline_p90_error": 12.989549382794204,
+      "baseline_relative_error_median": 0.7107406726356571,
+      "depth": 4.0,
+      "median_error": 15.444505656100649,
+      "median_true_delta_from_start": 12.47272977148232,
+      "noise_floor_median": 4.499841582862483,
+      "p90_error": 24.287144937711076,
+      "relative_error_median": 1.2435688632731048,
+      "threshold": 8.999683165724965
+    },
+    {
+      "baseline_median_error": 11.285622025299265,
+      "baseline_p90_error": 16.542414488366685,
+      "baseline_relative_error_median": 0.7334455551232004,
+      "depth": 5.0,
+      "median_error": 18.528219556047127,
+      "median_true_delta_from_start": 15.130506876590434,
+      "noise_floor_median": 2.8250512407785884,
+      "p90_error": 24.986621574693064,
+      "relative_error_median": 1.2325551620502502,
+      "threshold": 5.650102481557177
+    },
+    {
+      "baseline_median_error": 11.798263398645119,
+      "baseline_p90_error": 14.290204176947208,
+      "baseline_relative_error_median": 0.5938319179760763,
+      "depth": 6.0,
+      "median_error": 20.65868651836052,
+      "median_true_delta_from_start": 20.356835600908653,
+      "noise_floor_median": 2.9913276179655295,
+      "p90_error": 25.378839417172966,
+      "relative_error_median": 1.1305028288367833,
+      "threshold": 5.982655235931059
+    },
+    {
+      "baseline_median_error": 10.16934745176917,
+      "baseline_p90_error": 14.10061792468655,
+      "baseline_relative_error_median": 0.45574365219742885,
+      "depth": 7.0,
+      "median_error": 23.24246627192673,
+      "median_true_delta_from_start": 20.158549222990544,
+      "noise_floor_median": 3.2506317402368987,
+      "p90_error": 28.55152811427208,
+      "relative_error_median": 1.1662307218728065,
+      "threshold": 6.501263480473797
+    },
+    {
+      "baseline_median_error": 11.492579842746188,
+      "baseline_p90_error": 17.489992860760044,
+      "baseline_relative_error_median": 0.5255550758074137,
+      "depth": 8.0,
+      "median_error": 21.678787408265826,
+      "median_true_delta_from_start": 19.4551233366293,
+      "noise_floor_median": 2.9870576387100582,
+      "p90_error": 27.327298533239027,
+      "relative_error_median": 1.0934071556651017,
+      "threshold": 5.9741152774201165
+    }
+  ],
+  "provenance": {
+    "args": {
+      "device": "cuda:0",
+      "eval_rollouts": 8,
+      "max_horizon": 8,
+      "out": "results/linearization_horizon_10k.json",
+      "pretrain_steps": 10000,
+      "rollout_horizon": 8,
+      "save_transitions": "results/transitions/lh_10k.pkl",
+      "seed": 0,
+      "steps": 8,
+      "train_rollouts": 40
+    },
+    "config_hash": "2afc37ddcb752f98",
+    "environment_version": "real-v1",
+    "git_commit": "b9479b26f61d354abd07c7ee392d860048cbb1b2",
+    "probe_suite_hash": "ee7918e62d630274",
+    "seed": 0,
+    "simulator_version": "none:measurement-only",
+    "target_checkpoint": "pretrain-10000steps-seed0"
+  },
+  "state_blind_baseline_horizon": 3,
+  "train_transition_count": 320
+}

@@ -18,8 +18,9 @@ import torch
 from teachability_compiler.metrics import weighted_norm
 from teachability_compiler.real.model import DecoderConfig
 from teachability_compiler.real.oracle import RealLearnerOracle
+from teachability_compiler.real.persistence import probe_suite_hash, save_transitions
 from teachability_compiler.real.tasks import VOCAB_SIZE, all_cluster_names
-from teachability_compiler.state import CurriculumAction
+from teachability_compiler.state import CurriculumAction, TransitionObservation
 
 
 def main() -> None:
@@ -56,6 +57,8 @@ def main() -> None:
     oracle.pretrain(n_steps=args.pretrain_steps, rng_seed=args.seed + 1)
     checkpoint = oracle.snapshot()
 
+    transitions: list[TransitionObservation] = []
+
     noise_values: list[float] = []
     for name in rng.choice(cluster_names, size=10, replace=True):
         action = _single_action(str(name), args.steps, oracle)
@@ -63,12 +66,16 @@ def main() -> None:
         seed_2 = _next_seed(rng)
 
         oracle.restore(checkpoint)
-        outcome_1 = oracle.apply_action(action, data_seed=seed_1).state_after.probe_losses
+        observation_1 = oracle.apply_action(action, data_seed=seed_1)
+        outcome_1 = observation_1.state_after.probe_losses
+        transitions.append(observation_1)
         overhead_steps += args.steps
         overhead_tokens += args.steps * oracle.batch_size * oracle.seq_len
 
         oracle.restore(checkpoint)
-        outcome_2 = oracle.apply_action(action, data_seed=seed_2).state_after.probe_losses
+        observation_2 = oracle.apply_action(action, data_seed=seed_2)
+        outcome_2 = observation_2.state_after.probe_losses
+        transitions.append(observation_2)
         overhead_steps += args.steps
         overhead_tokens += args.steps * oracle.batch_size * oracle.seq_len
 
@@ -91,15 +98,19 @@ def main() -> None:
             seed_ba_2 = _next_seed(rng)
 
             oracle.restore(checkpoint)
-            oracle.apply_action(action_a, data_seed=seed_ab_1)
+            obs_a_first = oracle.apply_action(action_a, data_seed=seed_ab_1)
             obs_ab = oracle.apply_action(action_b, data_seed=seed_ab_2)
+            transitions.append(obs_a_first)
+            transitions.append(obs_ab)
             state_ab = obs_ab.state_after
             overhead_steps += 2 * args.steps
             overhead_tokens += 2 * args.steps * oracle.batch_size * oracle.seq_len
 
             oracle.restore(checkpoint)
-            oracle.apply_action(action_b, data_seed=seed_ba_1)
+            obs_b_first = oracle.apply_action(action_b, data_seed=seed_ba_1)
             obs_ba = oracle.apply_action(action_a, data_seed=seed_ba_2)
+            transitions.append(obs_b_first)
+            transitions.append(obs_ba)
             state_ba = obs_ba.state_after
             overhead_steps += 2 * args.steps
             overhead_tokens += 2 * args.steps * oracle.batch_size * oracle.seq_len
@@ -145,6 +156,7 @@ def main() -> None:
             "target_checkpoint": f"pretrain-{args.pretrain_steps}steps-seed{args.seed}",
             "simulator_version": "none:measurement-only",
             "environment_version": "real-v1",
+            "probe_suite_hash": probe_suite_hash(),
             "args": vars(args),
         },
         "overhead": {
@@ -159,6 +171,19 @@ def main() -> None:
     out_path.write_text(json.dumps(output, indent=2, sort_keys=True), encoding="utf-8")
     _print_summary(pair_records, tail_statistics, noise_mean, noise_p95, repeatability)
 
+    if args.save_transitions is not None:
+        save_transitions(
+            args.save_transitions,
+            transitions,
+            {
+                "experiment": "commutator_tail",
+                "pretrain_steps": args.pretrain_steps,
+                "seed": args.seed,
+                "probe_suite_hash": probe_suite_hash(),
+                "git_commit": _git_commit(),
+            },
+        )
+
 
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -169,6 +194,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--out", type=str, default="results/commutator_tail.json")
+    parser.add_argument("--save-transitions", type=str, default=None)
     args = parser.parse_args()
     if args.steps <= 0:
         raise ValueError("--steps must be positive")
