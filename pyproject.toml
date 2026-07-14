@@ -17,6 +17,9 @@ dev = [
   "ruff>=0.5",
   "mypy>=1.10",
 ]
+real = [
+  "torch>=2.7",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -32,3 +35,11 @@ line-length = 100
 [tool.mypy]
 python_version = "3.12"
 strict = true
+
+# torch APIs are partially typed; relax Any-propagation rules for the
+# torch-facing subpackage while keeping the numpy core fully strict.
+[[tool.mypy.overrides]]
+module = "teachability_compiler.real.*"
+warn_return_any = false
+disallow_untyped_calls = false
+disallow_any_generics = false
