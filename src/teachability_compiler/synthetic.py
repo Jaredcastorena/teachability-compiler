@@ -41,6 +41,25 @@ VALUE_WEIGHTS: Final[FloatVector] = np.asarray(
     dtype=np.float64,
 )
 
+# Held-out evaluation channel (AGENTS.md constraint 8). These probes are
+# computed only by the true environment: they never enter LearningState,
+# predictor features, or the planner-visible value function. Each probe
+# measures joint competence on a skill pair via a geometric mean, so the
+# held-out objective rewards skill combinations rather than the weighted
+# sum the planner optimizes.
+HELD_OUT_SKILL_PAIRS: Final[tuple[tuple[int, int], ...]] = (
+    (0, 1),
+    (2, 5),
+    (4, 5),
+    (3, 6),
+    (1, 7),
+    (0, 5),
+)
+HELD_OUT_WEIGHTS: Final[FloatVector] = np.asarray(
+    [1.0, 1.5, 2.0, 1.0, 0.8, 1.5],
+    dtype=np.float64,
+)
+
 
 @dataclass(frozen=True, slots=True)
 class ClusterDefinition:
@@ -147,6 +166,32 @@ class SyntheticEnvironment:
         if state.probe_losses.shape != VALUE_WEIGHTS.shape:
             raise ValueError("probe loss and value-weight dimensions do not match")
         return -float(np.sum(VALUE_WEIGHTS * state.probe_losses))
+
+    def held_out_probe_losses(self, state: LearningState) -> FloatVector:
+        """Return held-out evaluation probe losses invisible to the planner.
+
+        Never pass this to a planner or predictor: it exists solely for final
+        evaluation, per the rule that results must not be scored only on
+        planner-visible probes.
+        """
+
+        skills = self._skills_from_state(state)
+        losses = np.asarray(
+            [
+                1.0 - float(np.sqrt(skills[left] * skills[right]))
+                for left, right in HELD_OUT_SKILL_PAIRS
+            ],
+            dtype=np.float64,
+        )
+        return np.clip(losses, 0.0, 1.0)
+
+    def held_out_value(self, state: LearningState) -> float:
+        """Return the held-out evaluation objective; higher values are better."""
+
+        losses = self.held_out_probe_losses(state)
+        if losses.shape != HELD_OUT_WEIGHTS.shape:
+            raise ValueError("held-out probe and weight dimensions do not match")
+        return -float(np.sum(HELD_OUT_WEIGHTS * losses))
 
     def step(
         self,

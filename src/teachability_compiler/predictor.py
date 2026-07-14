@@ -33,17 +33,26 @@ class RidgeTransitionPredictor:
             name: index for index, name in enumerate(self._action_names)
         }
         self._ridge = ridge
+        self._predict_calls = 0
         self._coef: FloatMatrix | None = None
         self._residual_std: FloatVector | None = None
         self._feature_mean: FloatVector | None = None
         self._state_dim: int | None = None
         self._probe_dim: int | None = None
 
+    version: str = "ridge-v1"
+
     @property
     def action_names(self) -> tuple[str, ...]:
         """Return action names known to the predictor."""
 
         return self._action_names
+
+    @property
+    def predict_calls(self) -> int:
+        """Return how many predictions have been served, for search accounting."""
+
+        return self._predict_calls
 
     def fit(
         self,
@@ -99,6 +108,7 @@ class RidgeTransitionPredictor:
         feature_mean = self._feature_mean
         if coef is None or residual_std is None or feature_mean is None:
             raise RuntimeError("predictor must be fit before predict is called")
+        self._predict_calls += 1
 
         features = self._features(state, action)
         predicted_delta = np.asarray(features @ coef, dtype=np.float64)

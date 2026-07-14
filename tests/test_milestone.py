@@ -8,6 +8,7 @@ import numpy as np
 import numpy.typing as npt
 
 from teachability_compiler.evaluation import (
+    NO_CHECKPOINT_SENTINEL,
     evaluate_curriculum,
     run_multi_seed_comparison,
 )
@@ -112,7 +113,11 @@ def test_replay_sensitivity() -> None:
 
 
 def test_mcts_discovers_bridge_more_often_than_greedy() -> None:
-    """Decisive test: MCTS finds the bridge more often and scores higher."""
+    """Decisive test: MCTS finds the bridge more often and wins held-out.
+
+    The comparison metric is the held-out objective, which the planners and
+    the predictor never observe (AGENTS.md constraint 8).
+    """
 
     result = run_multi_seed_comparison(
         5,
@@ -126,7 +131,50 @@ def test_mcts_discovers_bridge_more_often_than_greedy() -> None:
         result["mcts"]["bridge_discovery_rate"]
         > result["greedy"]["bridge_discovery_rate"]
     )
+    assert result["mcts"]["mean_held_out_value"] > result["greedy"]["mean_held_out_value"]
     assert result["mcts"]["mean_terminal_value"] > result["greedy"]["mean_terminal_value"]
+
+
+def test_held_out_objective_is_distinct_from_planner_objective() -> None:
+    """Held-out probes must not be a reweighting of the planner objective."""
+
+    env = SyntheticEnvironment()
+    rng = np.random.default_rng(7)
+    state = env.initial_state()
+    for name in ("bridge", "bridge_payload", "prereq_basic"):
+        state = env.step(state, env.action_by_name(name), rng)
+
+    held_out = env.held_out_probe_losses(state)
+    assert held_out.shape != state.probe_losses.shape
+    assert env.held_out_value(state) != env.value(state)
+
+
+def test_report_records_overhead_and_provenance() -> None:
+    """Experiment results must carry full accounting (AGENTS.md rule 7)."""
+
+    result = run_multi_seed_comparison(
+        2,
+        horizon=3,
+        oracle_rollouts=10,
+        oracle_horizon=3,
+        mcts_simulations=20,
+        seed_offset=3,
+    )
+
+    provenance = result.provenance
+    assert provenance["seeds"] == "3..4"
+    assert len(provenance["config_hash"]) == 16
+    assert provenance["git_commit"]
+    assert provenance["target_checkpoint"] == NO_CHECKPOINT_SENTINEL
+    assert provenance["simulator_version"] == "ridge-v1"
+    assert provenance["environment_version"] == "synthetic-v1"
+
+    overhead = result.overhead
+    assert overhead["oracle_transitions"] > 0.0
+    assert overhead["oracle_compute_cost"] > 0.0
+    assert overhead["greedy_simulator_calls"] > 0.0
+    assert overhead["mcts_simulator_calls"] > overhead["greedy_simulator_calls"]
+    assert overhead["true_env_evaluation_steps"] > 0.0
 
 
 def _loss_transition(
