@@ -1,0 +1,2715 @@
+{
+  "count_pairs_above_noise_p95": 189,
+  "noise_floor": {
+    "mean": 0.431509561342294,
+    "p95": 1.3393148850902687,
+    "values": [
+      0.088432436455181,
+      0.14411336239286635,
+      0.7683628757717381,
+      1.8064574381690686,
+      0.3691072082597945,
+      0.10472893554608706,
+      0.25228960605232037,
+      0.2366367903431517,
+      0.36206682167373744,
+      0.18290013875899533
+    ]
+  },
+  "overhead": {
+    "total_optimizer_steps": 12620,
+    "total_tokens": 51691520,
+    "wall_seconds": 699.0267606459965
+  },
+  "pairs": [
+    {
+      "a": "copy_short",
+      "b": "copy_long",
+      "commutator": [
+        3.5147774381825916,
+        2.967325719076387
+      ],
+      "directed_advantage": [
+        -0.006540900468826383,
+        0.15541765689849862
+      ],
+      "directed_advantage_mean": 0.07443837821483612,
+      "mean": 3.2410515786294893
+    },
+    {
+      "a": "copy_short",
+      "b": "reverse_short",
+      "commutator": [
+        3.3564083169339614,
+        2.958623002898569
+      ],
+      "directed_advantage": [
+        0.49504519701004046,
+        0.4276188075542451
+      ],
+      "directed_advantage_mean": 0.4613320022821428,
+      "mean": 3.1575156599162653
+    },
+    {
+      "a": "copy_short",
+      "b": "reverse_long",
+      "commutator": [
+        4.089801379311712,
+        3.311770964779538
+      ],
+      "directed_advantage": [
+        0.5155286192893982,
+        0.3991805911064148
+      ],
+      "directed_advantage_mean": 0.4573546051979065,
+      "mean": 3.700786172045625
+    },
+    {
+      "a": "copy_short",
+      "b": "sort_digits",
+      "commutator": [
+        6.903609318227756,
+        5.4149385873246025
+      ],
+      "directed_advantage": [
+        0.5758126795291902,
+        0.2313613235950469
+      ],
+      "directed_advantage_mean": 0.4035870015621186,
+      "mean": 6.159273952776179
+    },
+    {
+      "a": "copy_short",
+      "b": "add_1digit",
+      "commutator": [
+        10.745017665645237,
+        11.279351254653863
+      ],
+      "directed_advantage": [
+        -0.2200528085231781,
+        0.8280280113220213
+      ],
+      "directed_advantage_mean": 0.3039876013994216,
+      "mean": 11.01218446014955
+    },
+    {
+      "a": "copy_short",
+      "b": "add_2digit",
+      "commutator": [
+        9.278080216685305,
+        9.742692392552364
+      ],
+      "directed_advantage": [
+        -0.32670506834983826,
+        0.5023314177989957
+      ],
+      "directed_advantage_mean": 0.08781317472457872,
+      "mean": 9.510386304618834
+    },
+    {
+      "a": "copy_short",
+      "b": "sub_1digit",
+      "commutator": [
+        9.133237423553593,
+        9.555922749962852
+      ],
+      "directed_advantage": [
+        -0.16995440721511823,
+        0.6277059972286221
+      ],
+      "directed_advantage_mean": 0.22887579500675193,
+      "mean": 9.344580086758222
+    },
+    {
+      "a": "copy_short",
+      "b": "mod_arith",
+      "commutator": [
+        9.918841386488936,
+        12.798890429157579
+      ],
+      "directed_advantage": [
+        -0.32831628322601336,
+        -0.7347564816474916
+      ],
+      "directed_advantage_mean": -0.5315363824367525,
+      "mean": 11.358865907823258
+    },
+    {
+      "a": "copy_short",
+      "b": "compare_numbers",
+      "commutator": [
+        8.496094134397683,
+        9.683950123088097
+      ],
+      "directed_advantage": [
+        0.5291665554046627,
+        0.3927319586277007
+      ],
+      "directed_advantage_mean": 0.4609492570161817,
+      "mean": 9.090022128742891
+    },
+    {
+      "a": "copy_short",
+      "b": "bracket_match",
+      "commutator": [
+        6.157396753319717,
+        4.41119053196399
+      ],
+      "directed_advantage": [
+        -0.8712605625391006,
+        -0.5171936511993409
+      ],
+      "directed_advantage_mean": -0.6942271068692207,
+      "mean": 5.284293642641853
+    },
+    {
+      "a": "copy_short",
+      "b": "bracket_depth",
+      "commutator": [
+        4.427167453711119,
+        5.393538168444039
+      ],
+      "directed_advantage": [
+        0.034746021032333374,
+        -0.747890403866768
+      ],
+      "directed_advantage_mean": -0.3565721914172173,
+      "mean": 4.910352811077579
+    },
+    {
+      "a": "copy_short",
+      "b": "letter_shift",
+      "commutator": [
+        6.238533036231331,
+        5.901626199487023
+      ],
+      "directed_advantage": [
+        0.8752269685268406,
+        0.9219251394271848
+      ],
+      "directed_advantage_mean": 0.8985760539770127,
+      "mean": 6.070079617859177
+    },
+    {
+      "a": "copy_short",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        5.463757586397196,
+        6.9821407025147195
+      ],
+      "directed_advantage": [
+        0.7559078752994539,
+        0.2852195203304291
+      ],
+      "directed_advantage_mean": 0.5205636978149415,
+      "mean": 6.222949144455958
+    },
+    {
+      "a": "copy_short",
+      "b": "pattern_repeat",
+      "commutator": [
+        3.677159856947562,
+        5.395147387168839
+      ],
+      "directed_advantage": [
+        0.4166403681039812,
+        0.7578600689768793
+      ],
+      "directed_advantage_mean": 0.5872502185404302,
+      "mean": 4.5361536220582
+    },
+    {
+      "a": "copy_short",
+      "b": "pattern_alternate",
+      "commutator": [
+        2.9393501791075143,
+        5.977769809497441
+      ],
+      "directed_advantage": [
+        0.31335508525371525,
+        0.839214026927948
+      ],
+      "directed_advantage_mean": 0.5762845560908316,
+      "mean": 4.458559994302478
+    },
+    {
+      "a": "copy_short",
+      "b": "count_chars",
+      "commutator": [
+        5.981371768525758,
+        3.605831575998895
+      ],
+      "directed_advantage": [
+        0.6503325790166854,
+        -0.23894500434398624
+      ],
+      "directed_advantage_mean": 0.20569378733634958,
+      "mean": 4.7936016722623265
+    },
+    {
+      "a": "copy_short",
+      "b": "concat_fields",
+      "commutator": [
+        2.927770712007643,
+        3.8906106811130208
+      ],
+      "directed_advantage": [
+        0.2809738099575041,
+        0.3453032970428467
+      ],
+      "directed_advantage_mean": 0.3131385535001754,
+      "mean": 3.409190696560332
+    },
+    {
+      "a": "copy_short",
+      "b": "field_lookup",
+      "commutator": [
+        5.064848515967939,
+        4.3126601250713135
+      ],
+      "directed_advantage": [
+        0.4537875711917878,
+        0.4395063102245329
+      ],
+      "directed_advantage_mean": 0.44664694070816036,
+      "mean": 4.688754320519626
+    },
+    {
+      "a": "copy_short",
+      "b": "mixed_review",
+      "commutator": [
+        3.108080446768499,
+        2.712550011862629
+      ],
+      "directed_advantage": [
+        0.5314767330884933,
+        0.4619615197181701
+      ],
+      "directed_advantage_mean": 0.4967191264033317,
+      "mean": 2.9103152293155636
+    },
+    {
+      "a": "copy_long",
+      "b": "reverse_short",
+      "commutator": [
+        4.705903138394116,
+        2.690415946139086
+      ],
+      "directed_advantage": [
+        0.8891562879085542,
+        -0.183519184589386
+      ],
+      "directed_advantage_mean": 0.3528185516595841,
+      "mean": 3.698159542266601
+    },
+    {
+      "a": "copy_long",
+      "b": "reverse_long",
+      "commutator": [
+        2.0776584474391,
+        7.0479000772839235
+      ],
+      "directed_advantage": [
+        0.15707474350929274,
+        1.3391351938247682
+      ],
+      "directed_advantage_mean": 0.7481049686670305,
+      "mean": 4.562779262361512
+    },
+    {
+      "a": "copy_long",
+      "b": "sort_digits",
+      "commutator": [
+        5.949269986833062,
+        7.910039177066167
+      ],
+      "directed_advantage": [
+        -0.9399582505226136,
+        -1.2778197884559632
+      ],
+      "directed_advantage_mean": -1.1088890194892884,
+      "mean": 6.929654581949615
+    },
+    {
+      "a": "copy_long",
+      "b": "add_1digit",
+      "commutator": [
+        13.18530473671659,
+        11.373619630640587
+      ],
+      "directed_advantage": [
+        -0.7638339340686793,
+        -0.6572752892971039
+      ],
+      "directed_advantage_mean": -0.7105546116828916,
+      "mean": 12.27946218367859
+    },
+    {
+      "a": "copy_long",
+      "b": "add_2digit",
+      "commutator": [
+        12.033346496517007,
+        9.79213048667457
+      ],
+      "directed_advantage": [
+        -0.7351455271244047,
+        -0.2196867644786833
+      ],
+      "directed_advantage_mean": -0.477416145801544,
+      "mean": 10.912738491595789
+    },
+    {
+      "a": "copy_long",
+      "b": "sub_1digit",
+      "commutator": [
+        9.07783609968769,
+        12.975448965539917
+      ],
+      "directed_advantage": [
+        0.8391405165195462,
+        -1.1453542947769169
+      ],
+      "directed_advantage_mean": -0.1531068891286853,
+      "mean": 11.026642532613803
+    },
+    {
+      "a": "copy_long",
+      "b": "mod_arith",
+      "commutator": [
+        12.818609468815357,
+        11.159555288910484
+      ],
+      "directed_advantage": [
+        -0.9231176555156706,
+        -0.5023092269897456
+      ],
+      "directed_advantage_mean": -0.7127134412527081,
+      "mean": 11.989082378862921
+    },
+    {
+      "a": "copy_long",
+      "b": "compare_numbers",
+      "commutator": [
+        8.200110455434963,
+        8.045438499307247
+      ],
+      "directed_advantage": [
+        -0.13694483637809762,
+        -1.0928933560848235
+      ],
+      "directed_advantage_mean": -0.6149190962314606,
+      "mean": 8.122774477371106
+    },
+    {
+      "a": "copy_long",
+      "b": "bracket_match",
+      "commutator": [
+        4.971857501570811,
+        5.064203537840015
+      ],
+      "directed_advantage": [
+        -0.7255869001150135,
+        -0.7717015594244003
+      ],
+      "directed_advantage_mean": -0.7486442297697069,
+      "mean": 5.0180305197054125
+    },
+    {
+      "a": "copy_long",
+      "b": "bracket_depth",
+      "commutator": [
+        7.888404589988981,
+        8.427754989706914
+      ],
+      "directed_advantage": [
+        -0.10882074832916278,
+        0.28289988040924063
+      ],
+      "directed_advantage_mean": 0.08703956604003893,
+      "mean": 8.158079789847948
+    },
+    {
+      "a": "copy_long",
+      "b": "letter_shift",
+      "commutator": [
+        6.168472373848987,
+        4.605280725769515
+      ],
+      "directed_advantage": [
+        0.611698794364929,
+        -0.3980502843856808
+      ],
+      "directed_advantage_mean": 0.10682425498962411,
+      "mean": 5.3868765498092515
+    },
+    {
+      "a": "copy_long",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        7.133440954062729,
+        6.921051011345419
+      ],
+      "directed_advantage": [
+        0.24528002738952637,
+        0.6752094268798827
+      ],
+      "directed_advantage_mean": 0.46024472713470455,
+      "mean": 7.027245982704073
+    },
+    {
+      "a": "copy_long",
+      "b": "pattern_repeat",
+      "commutator": [
+        3.832922892436914,
+        4.574270211113904
+      ],
+      "directed_advantage": [
+        0.3419414758682251,
+        0.41048891842365265
+      ],
+      "directed_advantage_mean": 0.3762151971459389,
+      "mean": 4.2035965517754095
+    },
+    {
+      "a": "copy_long",
+      "b": "pattern_alternate",
+      "commutator": [
+        5.693739558630842,
+        4.084847017335322
+      ],
+      "directed_advantage": [
+        -0.8092939883470534,
+        -0.5239843085408213
+      ],
+      "directed_advantage_mean": -0.6666391484439373,
+      "mean": 4.889293287983082
+    },
+    {
+      "a": "copy_long",
+      "b": "count_chars",
+      "commutator": [
+        2.771221216286162,
+        6.56624501336867
+      ],
+      "directed_advantage": [
+        0.23457069396972674,
+        -1.1410910516977308
+      ],
+      "directed_advantage_mean": -0.45326017886400205,
+      "mean": 4.6687331148274165
+    },
+    {
+      "a": "copy_long",
+      "b": "concat_fields",
+      "commutator": [
+        4.238954284226675,
+        3.9134831610634717
+      ],
+      "directed_advantage": [
+        0.17779008746147174,
+        0.23619942665100124
+      ],
+      "directed_advantage_mean": 0.2069947570562365,
+      "mean": 4.0762187226450735
+    },
+    {
+      "a": "copy_long",
+      "b": "field_lookup",
+      "commutator": [
+        5.295626889532523,
+        4.8796783535252395
+      ],
+      "directed_advantage": [
+        0.2575491189956667,
+        0.10816335082054174
+      ],
+      "directed_advantage_mean": 0.1828562349081042,
+      "mean": 5.087652621528881
+    },
+    {
+      "a": "copy_long",
+      "b": "mixed_review",
+      "commutator": [
+        2.5996927718750893,
+        6.7991389291195
+      ],
+      "directed_advantage": [
+        0.42683519423007965,
+        1.2942159652709961
+      ],
+      "directed_advantage_mean": 0.8605255797505379,
+      "mean": 4.699415850497294
+    },
+    {
+      "a": "reverse_short",
+      "b": "reverse_long",
+      "commutator": [
+        6.346317578798155,
+        6.901626294205867
+      ],
+      "directed_advantage": [
+        -1.0875504434108736,
+        -1.0622314155101775
+      ],
+      "directed_advantage_mean": -1.0748909294605256,
+      "mean": 6.623971936502011
+    },
+    {
+      "a": "reverse_short",
+      "b": "sort_digits",
+      "commutator": [
+        6.2133646549067505,
+        3.4671946698474727
+      ],
+      "directed_advantage": [
+        0.5933739542961121,
+        0.12460243105888402
+      ],
+      "directed_advantage_mean": 0.35898819267749804,
+      "mean": 4.840279662377112
+    },
+    {
+      "a": "reverse_short",
+      "b": "add_1digit",
+      "commutator": [
+        8.535666291602144,
+        9.356129677122473
+      ],
+      "directed_advantage": [
+        1.5487882077693942,
+        1.4404919207096096
+      ],
+      "directed_advantage_mean": 1.494640064239502,
+      "mean": 8.945897984362308
+    },
+    {
+      "a": "reverse_short",
+      "b": "add_2digit",
+      "commutator": [
+        7.182700536875609,
+        5.92291840098902
+      ],
+      "directed_advantage": [
+        -1.095291340351105,
+        -0.5072514295578001
+      ],
+      "directed_advantage_mean": -0.8012713849544526,
+      "mean": 6.552809468932315
+    },
+    {
+      "a": "reverse_short",
+      "b": "sub_1digit",
+      "commutator": [
+        6.857053405201386,
+        5.632106720202166
+      ],
+      "directed_advantage": [
+        1.1734010338783265,
+        0.5716533184051511
+      ],
+      "directed_advantage_mean": 0.8725271761417388,
+      "mean": 6.244580062701775
+    },
+    {
+      "a": "reverse_short",
+      "b": "mod_arith",
+      "commutator": [
+        10.275358031474452,
+        8.081274755014594
+      ],
+      "directed_advantage": [
+        -1.575614142417908,
+        -0.4642390251159667
+      ],
+      "directed_advantage_mean": -1.0199265837669373,
+      "mean": 9.178316393244522
+    },
+    {
+      "a": "reverse_short",
+      "b": "compare_numbers",
+      "commutator": [
+        8.094857135139756,
+        5.640153389998246
+      ],
+      "directed_advantage": [
+        -0.20593223571777308,
+        0.5924137234687805
+      ],
+      "directed_advantage_mean": 0.19324074387550372,
+      "mean": 6.867505262569001
+    },
+    {
+      "a": "reverse_short",
+      "b": "bracket_match",
+      "commutator": [
+        8.051530992882286,
+        3.548435178378967
+      ],
+      "directed_advantage": [
+        0.903209313750267,
+        -0.3606574803590772
+      ],
+      "directed_advantage_mean": 0.2712759166955949,
+      "mean": 5.799983085630627
+    },
+    {
+      "a": "reverse_short",
+      "b": "bracket_depth",
+      "commutator": [
+        6.042709218981022,
+        9.559191760114585
+      ],
+      "directed_advantage": [
+        -0.573944589495659,
+        -1.663102468848228
+      ],
+      "directed_advantage_mean": -1.1185235291719435,
+      "mean": 7.8009504895478035
+    },
+    {
+      "a": "reverse_short",
+      "b": "letter_shift",
+      "commutator": [
+        8.037278415929766,
+        6.186808537482965
+      ],
+      "directed_advantage": [
+        1.3955587565898897,
+        1.1560769855976103
+      ],
+      "directed_advantage_mean": 1.27581787109375,
+      "mean": 7.112043476706365
+    },
+    {
+      "a": "reverse_short",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        7.6774246149585785,
+        5.642957354483118
+      ],
+      "directed_advantage": [
+        1.371152013540268,
+        0.9685646593570709
+      ],
+      "directed_advantage_mean": 1.1698583364486694,
+      "mean": 6.660190984720849
+    },
+    {
+      "a": "reverse_short",
+      "b": "pattern_repeat",
+      "commutator": [
+        10.123366495635953,
+        2.5541256042635245
+      ],
+      "directed_advantage": [
+        1.1291266664862634,
+        0.2688661217689514
+      ],
+      "directed_advantage_mean": 0.6989963941276074,
+      "mean": 6.338746049949739
+    },
+    {
+      "a": "reverse_short",
+      "b": "pattern_alternate",
+      "commutator": [
+        4.044382922586904,
+        2.839163147821173
+      ],
+      "directed_advantage": [
+        -0.36166078895330456,
+        0.12304369956254924
+      ],
+      "directed_advantage_mean": -0.11930854469537766,
+      "mean": 3.4417730352040388
+    },
+    {
+      "a": "reverse_short",
+      "b": "count_chars",
+      "commutator": [
+        7.051988139726493,
+        4.683405944044035
+      ],
+      "directed_advantage": [
+        -1.1441308528184893,
+        0.07654100954532606
+      ],
+      "directed_advantage_mean": -0.5337949216365816,
+      "mean": 5.867697041885265
+    },
+    {
+      "a": "reverse_short",
+      "b": "concat_fields",
+      "commutator": [
+        5.254806006865168,
+        4.454479751857962
+      ],
+      "directed_advantage": [
+        0.7799828588962554,
+        0.7368382930755617
+      ],
+      "directed_advantage_mean": 0.7584105759859086,
+      "mean": 4.854642879361565
+    },
+    {
+      "a": "reverse_short",
+      "b": "field_lookup",
+      "commutator": [
+        3.8908539317945228,
+        5.143206349599411
+      ],
+      "directed_advantage": [
+        0.6508333325386046,
+        0.5318092048168181
+      ],
+      "directed_advantage_mean": 0.5913212686777114,
+      "mean": 4.517030140696967
+    },
+    {
+      "a": "reverse_short",
+      "b": "mixed_review",
+      "commutator": [
+        2.2543934777751984,
+        4.786080636448587
+      ],
+      "directed_advantage": [
+        0.41908902227878575,
+        0.9240009993314744
+      ],
+      "directed_advantage_mean": 0.6715450108051301,
+      "mean": 3.520237057111893
+    },
+    {
+      "a": "reverse_long",
+      "b": "sort_digits",
+      "commutator": [
+        4.393881366753327,
+        4.645886259900189
+      ],
+      "directed_advantage": [
+        0.5529989540576934,
+        0.18840370178222665
+      ],
+      "directed_advantage_mean": 0.37070132791996,
+      "mean": 4.519883813326758
+    },
+    {
+      "a": "reverse_long",
+      "b": "add_1digit",
+      "commutator": [
+        8.663973266111277,
+        3.78766143604275
+      ],
+      "directed_advantage": [
+        1.266293662786484,
+        -0.14506761431694004
+      ],
+      "directed_advantage_mean": 0.560613024234772,
+      "mean": 6.225817351077014
+    },
+    {
+      "a": "reverse_long",
+      "b": "add_2digit",
+      "commutator": [
+        7.677990077178997,
+        6.930369892783939
+      ],
+      "directed_advantage": [
+        -1.3988409340381622,
+        0.619520753622055
+      ],
+      "directed_advantage_mean": -0.3896600902080536,
+      "mean": 7.304179984981468
+    },
+    {
+      "a": "reverse_long",
+      "b": "sub_1digit",
+      "commutator": [
+        6.18985527456871,
+        5.380066260324583
+      ],
+      "directed_advantage": [
+        -0.8483271121978762,
+        0.14632414281368256
+      ],
+      "directed_advantage_mean": -0.3510014846920968,
+      "mean": 5.784960767446647
+    },
+    {
+      "a": "reverse_long",
+      "b": "mod_arith",
+      "commutator": [
+        5.754234898178464,
+        4.893519787884395
+      ],
+      "directed_advantage": [
+        -0.2805405914783474,
+        0.6865275859832765
+      ],
+      "directed_advantage_mean": 0.20299349725246452,
+      "mean": 5.3238773430314295
+    },
+    {
+      "a": "reverse_long",
+      "b": "compare_numbers",
+      "commutator": [
+        5.547809155113399,
+        4.456858077763369
+      ],
+      "directed_advantage": [
+        0.9884782433509827,
+        -0.020289438962936668
+      ],
+      "directed_advantage_mean": 0.484094402194023,
+      "mean": 5.002333616438383
+    },
+    {
+      "a": "reverse_long",
+      "b": "bracket_match",
+      "commutator": [
+        3.3010755076566127,
+        3.283226435731758
+      ],
+      "directed_advantage": [
+        0.5618282526731493,
+        0.27269856035709417
+      ],
+      "directed_advantage_mean": 0.4172634065151217,
+      "mean": 3.2921509716941855
+    },
+    {
+      "a": "reverse_long",
+      "b": "bracket_depth",
+      "commutator": [
+        6.815369779418051,
+        6.315711475209993
+      ],
+      "directed_advantage": [
+        -0.8786278754472732,
+        -1.0799125492572785
+      ],
+      "directed_advantage_mean": -0.9792702123522758,
+      "mean": 6.565540627314022
+    },
+    {
+      "a": "reverse_long",
+      "b": "letter_shift",
+      "commutator": [
+        5.012886652065934,
+        3.5526239254391982
+      ],
+      "directed_advantage": [
+        0.6248218357563018,
+        0.4956882655620576
+      ],
+      "directed_advantage_mean": 0.5602550506591797,
+      "mean": 4.282755288752566
+    },
+    {
+      "a": "reverse_long",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        5.33770817267211,
+        6.508811833400562
+      ],
+      "directed_advantage": [
+        0.7397241234779357,
+        1.047343909740448
+      ],
+      "directed_advantage_mean": 0.8935340166091919,
+      "mean": 5.923260003036336
+    },
+    {
+      "a": "reverse_long",
+      "b": "pattern_repeat",
+      "commutator": [
+        2.9089715354267294,
+        2.064496818605735
+      ],
+      "directed_advantage": [
+        0.11016614437103245,
+        0.2651694267988205
+      ],
+      "directed_advantage_mean": 0.18766778558492647,
+      "mean": 2.486734177016232
+    },
+    {
+      "a": "reverse_long",
+      "b": "pattern_alternate",
+      "commutator": [
+        3.243709284930851,
+        2.109143996781036
+      ],
+      "directed_advantage": [
+        0.07577293068170565,
+        -0.29809418320655845
+      ],
+      "directed_advantage_mean": -0.1111606262624264,
+      "mean": 2.6764266408559436
+    },
+    {
+      "a": "reverse_long",
+      "b": "count_chars",
+      "commutator": [
+        5.001860679409101,
+        5.5658267122466745
+      ],
+      "directed_advantage": [
+        -1.0234132230281832,
+        -0.7399668246507645
+      ],
+      "directed_advantage_mean": -0.8816900238394738,
+      "mean": 5.283843695827888
+    },
+    {
+      "a": "reverse_long",
+      "b": "concat_fields",
+      "commutator": [
+        4.128318954540452,
+        2.391202987320463
+      ],
+      "directed_advantage": [
+        -0.24050151705741873,
+        0.11203163564205187
+      ],
+      "directed_advantage_mean": -0.06423494070768343,
+      "mean": 3.259760970930458
+    },
+    {
+      "a": "reverse_long",
+      "b": "field_lookup",
+      "commutator": [
+        4.135571035881391,
+        3.39663614795987
+      ],
+      "directed_advantage": [
+        0.0016961097717285156,
+        0.5719863653182982
+      ],
+      "directed_advantage_mean": 0.28684123754501334,
+      "mean": 3.7661035919206305
+    },
+    {
+      "a": "reverse_long",
+      "b": "mixed_review",
+      "commutator": [
+        2.454068684647185,
+        6.227410434122142
+      ],
+      "directed_advantage": [
+        0.4397024601697921,
+        1.1367256283760072
+      ],
+      "directed_advantage_mean": 0.7882140442728996,
+      "mean": 4.340739559384663
+    },
+    {
+      "a": "sort_digits",
+      "b": "add_1digit",
+      "commutator": [
+        6.089754327814149,
+        7.52205150812724
+      ],
+      "directed_advantage": [
+        1.1210233509540557,
+        1.2928107619285587
+      ],
+      "directed_advantage_mean": 1.2069170564413072,
+      "mean": 6.805902917970695
+    },
+    {
+      "a": "sort_digits",
+      "b": "add_2digit",
+      "commutator": [
+        8.605813815029975,
+        6.143512632040157
+      ],
+      "directed_advantage": [
+        1.3496816217899323,
+        0.9412785291671755
+      ],
+      "directed_advantage_mean": 1.145480075478554,
+      "mean": 7.374663223535066
+    },
+    {
+      "a": "sort_digits",
+      "b": "sub_1digit",
+      "commutator": [
+        4.205861766364512,
+        7.347910321141267
+      ],
+      "directed_advantage": [
+        0.4869818538427353,
+        1.1382245868444443
+      ],
+      "directed_advantage_mean": 0.8126032203435898,
+      "mean": 5.7768860437528895
+    },
+    {
+      "a": "sort_digits",
+      "b": "mod_arith",
+      "commutator": [
+        6.303607616285162,
+        4.626927564465069
+      ],
+      "directed_advantage": [
+        0.7733563125133518,
+        -0.3874505639076231
+      ],
+      "directed_advantage_mean": 0.19295287430286434,
+      "mean": 5.465267590375115
+    },
+    {
+      "a": "sort_digits",
+      "b": "compare_numbers",
+      "commutator": [
+        5.091283844305175,
+        4.790324469815978
+      ],
+      "directed_advantage": [
+        0.2959407389163973,
+        0.03430990576744053
+      ],
+      "directed_advantage_mean": 0.1651253223419189,
+      "mean": 4.940804157060576
+    },
+    {
+      "a": "sort_digits",
+      "b": "bracket_match",
+      "commutator": [
+        4.081362477494548,
+        5.223889069011704
+      ],
+      "directed_advantage": [
+        -0.5032922476530075,
+        -0.9214142352342605
+      ],
+      "directed_advantage_mean": -0.712353241443634,
+      "mean": 4.652625773253126
+    },
+    {
+      "a": "sort_digits",
+      "b": "bracket_depth",
+      "commutator": [
+        5.511923629460938,
+        6.994017812540555
+      ],
+      "directed_advantage": [
+        -0.4474650859832763,
+        -1.2005199879407886
+      ],
+      "directed_advantage_mean": -0.8239925369620325,
+      "mean": 6.252970721000747
+    },
+    {
+      "a": "sort_digits",
+      "b": "letter_shift",
+      "commutator": [
+        2.967273693663179,
+        5.77142406428159
+      ],
+      "directed_advantage": [
+        -0.21697551608085597,
+        -0.7066401600837708
+      ],
+      "directed_advantage_mean": -0.4618078380823134,
+      "mean": 4.369348878972385
+    },
+    {
+      "a": "sort_digits",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        4.815056500212319,
+        4.054297591616584
+      ],
+      "directed_advantage": [
+        -0.44749118089675877,
+        -0.18046401739120466
+      ],
+      "directed_advantage_mean": -0.3139775991439817,
+      "mean": 4.4346770459144516
+    },
+    {
+      "a": "sort_digits",
+      "b": "pattern_repeat",
+      "commutator": [
+        5.276875335661057,
+        1.9842387546374873
+      ],
+      "directed_advantage": [
+        -0.7075863122940063,
+        0.017154619097709656
+      ],
+      "directed_advantage_mean": -0.3452158465981483,
+      "mean": 3.630557045149272
+    },
+    {
+      "a": "sort_digits",
+      "b": "pattern_alternate",
+      "commutator": [
+        4.482743800339179,
+        2.830423896570626
+      ],
+      "directed_advantage": [
+        -0.4276850655674935,
+        -0.30395256280899074
+      ],
+      "directed_advantage_mean": -0.36581881418824214,
+      "mean": 3.6565838484549023
+    },
+    {
+      "a": "sort_digits",
+      "b": "count_chars",
+      "commutator": [
+        6.188602967145088,
+        5.259601982869954
+      ],
+      "directed_advantage": [
+        -0.8032297253608705,
+        -0.7556024283170699
+      ],
+      "directed_advantage_mean": -0.7794160768389702,
+      "mean": 5.724102475007522
+    },
+    {
+      "a": "sort_digits",
+      "b": "concat_fields",
+      "commutator": [
+        4.6825795568629776,
+        2.1377916711138165
+      ],
+      "directed_advantage": [
+        -0.472365799546242,
+        0.26968487203121194
+      ],
+      "directed_advantage_mean": -0.10134046375751504,
+      "mean": 3.4101856139883973
+    },
+    {
+      "a": "sort_digits",
+      "b": "field_lookup",
+      "commutator": [
+        7.742737929775791,
+        3.6974225855567275
+      ],
+      "directed_advantage": [
+        1.1849875688552856,
+        0.0012183785438537598
+      ],
+      "directed_advantage_mean": 0.5931029736995697,
+      "mean": 5.720080257666259
+    },
+    {
+      "a": "sort_digits",
+      "b": "mixed_review",
+      "commutator": [
+        2.034893878197881,
+        3.5800100528074394
+      ],
+      "directed_advantage": [
+        0.4127506226301194,
+        0.6930701345205306
+      ],
+      "directed_advantage_mean": 0.552910378575325,
+      "mean": 2.8074519655026604
+    },
+    {
+      "a": "add_1digit",
+      "b": "add_2digit",
+      "commutator": [
+        3.571754198044367,
+        3.339442580506371
+      ],
+      "directed_advantage": [
+        -0.35072481632232666,
+        -0.46537612080574053
+      ],
+      "directed_advantage_mean": -0.4080504685640336,
+      "mean": 3.455598389275369
+    },
+    {
+      "a": "add_1digit",
+      "b": "sub_1digit",
+      "commutator": [
+        3.7996107494329863,
+        4.8004714271066335
+      ],
+      "directed_advantage": [
+        -0.24243254661560076,
+        0.7359566390514374
+      ],
+      "directed_advantage_mean": 0.2467620462179183,
+      "mean": 4.3000410882698095
+    },
+    {
+      "a": "add_1digit",
+      "b": "mod_arith",
+      "commutator": [
+        3.3996340282830695,
+        2.903156549012519
+      ],
+      "directed_advantage": [
+        0.04707956910133415,
+        0.34369903206825203
+      ],
+      "directed_advantage_mean": 0.1953893005847931,
+      "mean": 3.1513952886477945
+    },
+    {
+      "a": "add_1digit",
+      "b": "compare_numbers",
+      "commutator": [
+        4.459847789276506,
+        4.339129004239317
+      ],
+      "directed_advantage": [
+        0.1641549050807951,
+        -0.36573123335838265
+      ],
+      "directed_advantage_mean": -0.10078816413879377,
+      "mean": 4.399488396757912
+    },
+    {
+      "a": "add_1digit",
+      "b": "bracket_match",
+      "commutator": [
+        8.596297081727913,
+        9.01630442607702
+      ],
+      "directed_advantage": [
+        -0.12929576933383924,
+        -0.4552591621875761
+      ],
+      "directed_advantage_mean": -0.2922774657607077,
+      "mean": 8.806300753902466
+    },
+    {
+      "a": "add_1digit",
+      "b": "bracket_depth",
+      "commutator": [
+        8.12939227326865,
+        10.168555998883603
+      ],
+      "directed_advantage": [
+        0.09909663796424795,
+        -0.31723191142082285
+      ],
+      "directed_advantage_mean": -0.10906763672828745,
+      "mean": 9.148974136076127
+    },
+    {
+      "a": "add_1digit",
+      "b": "letter_shift",
+      "commutator": [
+        5.910314778255821,
+        7.434531710977573
+      ],
+      "directed_advantage": [
+        -0.003104984760284424,
+        -0.3158587157726287
+      ],
+      "directed_advantage_mean": -0.15948185026645656,
+      "mean": 6.672423244616697
+    },
+    {
+      "a": "add_1digit",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        8.687735369510118,
+        6.7005967384594
+      ],
+      "directed_advantage": [
+        0.33537805676460275,
+        -0.5462702512741089
+      ],
+      "directed_advantage_mean": -0.10544609725475307,
+      "mean": 7.694166053984759
+    },
+    {
+      "a": "add_1digit",
+      "b": "pattern_repeat",
+      "commutator": [
+        6.7709649060211,
+        6.23191408454789
+      ],
+      "directed_advantage": [
+        0.14317037165164948,
+        -0.6498470932245253
+      ],
+      "directed_advantage_mean": -0.2533383607864379,
+      "mean": 6.501439495284496
+    },
+    {
+      "a": "add_1digit",
+      "b": "pattern_alternate",
+      "commutator": [
+        8.01332889825772,
+        8.5575593212417
+      ],
+      "directed_advantage": [
+        -0.7963831365108485,
+        -0.32852326035499546
+      ],
+      "directed_advantage_mean": -0.562453198432922,
+      "mean": 8.28544410974971
+    },
+    {
+      "a": "add_1digit",
+      "b": "count_chars",
+      "commutator": [
+        8.329637885143633,
+        7.749339405490251
+      ],
+      "directed_advantage": [
+        -0.5831889778375623,
+        0.2002437204122547
+      ],
+      "directed_advantage_mean": -0.1914726287126538,
+      "mean": 8.039488645316942
+    },
+    {
+      "a": "add_1digit",
+      "b": "concat_fields",
+      "commutator": [
+        10.665631234624007,
+        10.837104638271205
+      ],
+      "directed_advantage": [
+        -1.5074486196041104,
+        -1.3790296137332918
+      ],
+      "directed_advantage_mean": -1.443239116668701,
+      "mean": 10.751367936447606
+    },
+    {
+      "a": "add_1digit",
+      "b": "field_lookup",
+      "commutator": [
+        11.713275769524644,
+        10.852452634896702
+      ],
+      "directed_advantage": [
+        -0.06442862153053319,
+        -0.6770470380783085
+      ],
+      "directed_advantage_mean": -0.3707378298044208,
+      "mean": 11.282864202210673
+    },
+    {
+      "a": "add_1digit",
+      "b": "mixed_review",
+      "commutator": [
+        8.52034286142971,
+        2.9704156103375436
+      ],
+      "directed_advantage": [
+        1.5498058676719666,
+        0.39033817648887625
+      ],
+      "directed_advantage_mean": 0.9700720220804214,
+      "mean": 5.745379235883626
+    },
+    {
+      "a": "add_2digit",
+      "b": "sub_1digit",
+      "commutator": [
+        5.8895715245048335,
+        5.078164208909306
+      ],
+      "directed_advantage": [
+        -0.7055150449275969,
+        0.7616488099098211
+      ],
+      "directed_advantage_mean": 0.02806688249111211,
+      "mean": 5.48386786670707
+    },
+    {
+      "a": "add_2digit",
+      "b": "mod_arith",
+      "commutator": [
+        6.690856339624898,
+        4.908581751430348
+      ],
+      "directed_advantage": [
+        0.9815418362617496,
+        -0.3940432369709015
+      ],
+      "directed_advantage_mean": 0.29374929964542407,
+      "mean": 5.799719045527623
+    },
+    {
+      "a": "add_2digit",
+      "b": "compare_numbers",
+      "commutator": [
+        5.980460456956208,
+        3.5577073393514946
+      ],
+      "directed_advantage": [
+        -0.9152024626731867,
+        0.3331099987030024
+      ],
+      "directed_advantage_mean": -0.29104623198509216,
+      "mean": 4.769083898153851
+    },
+    {
+      "a": "add_2digit",
+      "b": "bracket_match",
+      "commutator": [
+        8.25057440003497,
+        6.836059008443342
+      ],
+      "directed_advantage": [
+        -0.7657555371522906,
+        -0.6202723771333694
+      ],
+      "directed_advantage_mean": -0.69301395714283,
+      "mean": 7.543316704239157
+    },
+    {
+      "a": "add_2digit",
+      "b": "bracket_depth",
+      "commutator": [
+        7.393202510977157,
+        8.3528338886095
+      ],
+      "directed_advantage": [
+        -0.6299763709306716,
+        -0.9110437542200085
+      ],
+      "directed_advantage_mean": -0.77051006257534,
+      "mean": 7.873018199793329
+    },
+    {
+      "a": "add_2digit",
+      "b": "letter_shift",
+      "commutator": [
+        5.915943926376966,
+        6.240346026392221
+      ],
+      "directed_advantage": [
+        -0.11356521248817453,
+        -0.49351323246955836
+      ],
+      "directed_advantage_mean": -0.30353922247886644,
+      "mean": 6.078144976384593
+    },
+    {
+      "a": "add_2digit",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        6.640176676196251,
+        6.2304047598295424
+      ],
+      "directed_advantage": [
+        -0.655339241027832,
+        -0.4576812028884887
+      ],
+      "directed_advantage_mean": -0.5565102219581604,
+      "mean": 6.435290718012897
+    },
+    {
+      "a": "add_2digit",
+      "b": "pattern_repeat",
+      "commutator": [
+        7.389396261163193,
+        5.412870745932588
+      ],
+      "directed_advantage": [
+        -0.7448163986206056,
+        -0.26401433050632495
+      ],
+      "directed_advantage_mean": -0.5044153645634653,
+      "mean": 6.401133503547891
+    },
+    {
+      "a": "add_2digit",
+      "b": "pattern_alternate",
+      "commutator": [
+        7.361548510906354,
+        7.205308064210493
+      ],
+      "directed_advantage": [
+        -0.6467826470732692,
+        -0.7154374688863752
+      ],
+      "directed_advantage_mean": -0.6811100579798222,
+      "mean": 7.283428287558424
+    },
+    {
+      "a": "add_2digit",
+      "b": "count_chars",
+      "commutator": [
+        7.746843239924796,
+        4.7815629543033
+      ],
+      "directed_advantage": [
+        -0.6966144263744356,
+        -0.39437407553195936
+      ],
+      "directed_advantage_mean": -0.5454942509531975,
+      "mean": 6.264203097114048
+    },
+    {
+      "a": "add_2digit",
+      "b": "concat_fields",
+      "commutator": [
+        9.15823387682805,
+        9.539254527205847
+      ],
+      "directed_advantage": [
+        -0.8523058235645293,
+        -0.7737925410270696
+      ],
+      "directed_advantage_mean": -0.8130491822957995,
+      "mean": 9.348744202016949
+    },
+    {
+      "a": "add_2digit",
+      "b": "field_lookup",
+      "commutator": [
+        9.439710874767993,
+        11.731312180344341
+      ],
+      "directed_advantage": [
+        -1.1621566176414486,
+        -0.16039140224456805
+      ],
+      "directed_advantage_mean": -0.6612740099430083,
+      "mean": 10.585511527556168
+    },
+    {
+      "a": "add_2digit",
+      "b": "mixed_review",
+      "commutator": [
+        3.6081261465321672,
+        3.9815928261764095
+      ],
+      "directed_advantage": [
+        0.6429749995470047,
+        0.6946107298135757
+      ],
+      "directed_advantage_mean": 0.6687928646802902,
+      "mean": 3.794859486354288
+    },
+    {
+      "a": "sub_1digit",
+      "b": "mod_arith",
+      "commutator": [
+        4.869038335771164,
+        5.49447375669016
+      ],
+      "directed_advantage": [
+        -0.21351787447929382,
+        0.9472672522068022
+      ],
+      "directed_advantage_mean": 0.3668746888637542,
+      "mean": 5.181756046230662
+    },
+    {
+      "a": "sub_1digit",
+      "b": "compare_numbers",
+      "commutator": [
+        2.8095740808318257,
+        3.0313158453578595
+      ],
+      "directed_advantage": [
+        -0.10420168638229388,
+        0.12478894591331446
+      ],
+      "directed_advantage_mean": 0.010293629765510293,
+      "mean": 2.920444963094843
+    },
+    {
+      "a": "sub_1digit",
+      "b": "bracket_match",
+      "commutator": [
+        6.529680656176011,
+        6.46482047373334
+      ],
+      "directed_advantage": [
+        -0.0456869214773179,
+        -0.14212391078472164
+      ],
+      "directed_advantage_mean": -0.09390541613101977,
+      "mean": 6.497250564954676
+    },
+    {
+      "a": "sub_1digit",
+      "b": "bracket_depth",
+      "commutator": [
+        9.822287894145038,
+        7.242515024241358
+      ],
+      "directed_advantage": [
+        1.0976122468709946,
+        -0.3218306928873065
+      ],
+      "directed_advantage_mean": 0.38789077699184404,
+      "mean": 8.5324014591932
+    },
+    {
+      "a": "sub_1digit",
+      "b": "letter_shift",
+      "commutator": [
+        4.733151885819887,
+        6.328761818635153
+      ],
+      "directed_advantage": [
+        -0.16732826828956604,
+        0.7643931806087494
+      ],
+      "directed_advantage_mean": 0.2985324561595917,
+      "mean": 5.53095685222752
+    },
+    {
+      "a": "sub_1digit",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        5.744684483469711,
+        8.66717033008644
+      ],
+      "directed_advantage": [
+        -0.04207952022552508,
+        -0.08353540897369394
+      ],
+      "directed_advantage_mean": -0.06280746459960951,
+      "mean": 7.205927406778075
+    },
+    {
+      "a": "sub_1digit",
+      "b": "pattern_repeat",
+      "commutator": [
+        6.857362580579106,
+        3.4707367236967603
+      ],
+      "directed_advantage": [
+        1.1612791657447814,
+        0.3138529121875764
+      ],
+      "directed_advantage_mean": 0.7375660389661789,
+      "mean": 5.164049652137933
+    },
+    {
+      "a": "sub_1digit",
+      "b": "pattern_alternate",
+      "commutator": [
+        5.016669693187906,
+        5.345547377630561
+      ],
+      "directed_advantage": [
+        -0.07618677765130988,
+        0.058348432183265686
+      ],
+      "directed_advantage_mean": -0.008919172734022096,
+      "mean": 5.181108535409233
+    },
+    {
+      "a": "sub_1digit",
+      "b": "count_chars",
+      "commutator": [
+        7.711905654344593,
+        10.75724924243177
+      ],
+      "directed_advantage": [
+        -1.302150699496269,
+        1.1823633104562763
+      ],
+      "directed_advantage_mean": -0.05989369451999638,
+      "mean": 9.234577448388182
+    },
+    {
+      "a": "sub_1digit",
+      "b": "concat_fields",
+      "commutator": [
+        10.401261836501849,
+        10.346305100999126
+      ],
+      "directed_advantage": [
+        -1.5045806616544724,
+        -1.520539873838425
+      ],
+      "directed_advantage_mean": -1.5125602677464487,
+      "mean": 10.373783468750489
+    },
+    {
+      "a": "sub_1digit",
+      "b": "field_lookup",
+      "commutator": [
+        10.607091043837135,
+        10.773706309301646
+      ],
+      "directed_advantage": [
+        -0.6879800617694856,
+        -1.2189384549856186
+      ],
+      "directed_advantage_mean": -0.9534592583775521,
+      "mean": 10.69039867656939
+    },
+    {
+      "a": "sub_1digit",
+      "b": "mixed_review",
+      "commutator": [
+        3.5213559239598053,
+        4.683390409127631
+      ],
+      "directed_advantage": [
+        0.6077952146530152,
+        0.8510921239852904
+      ],
+      "directed_advantage_mean": 0.7294436693191528,
+      "mean": 4.1023731665437175
+    },
+    {
+      "a": "mod_arith",
+      "b": "compare_numbers",
+      "commutator": [
+        7.32454337664319,
+        5.285026642177204
+      ],
+      "directed_advantage": [
+        0.9194043755531309,
+        -0.7575006842613226
+      ],
+      "directed_advantage_mean": 0.08095184564590419,
+      "mean": 6.304785009410197
+    },
+    {
+      "a": "mod_arith",
+      "b": "bracket_match",
+      "commutator": [
+        8.833856352856928,
+        7.963307698609569
+      ],
+      "directed_advantage": [
+        -1.271791890263557,
+        -0.6199152857065204
+      ],
+      "directed_advantage_mean": -0.9458535879850387,
+      "mean": 8.398582025733248
+    },
+    {
+      "a": "mod_arith",
+      "b": "bracket_depth",
+      "commutator": [
+        10.309910172665024,
+        8.442119526522479
+      ],
+      "directed_advantage": [
+        -0.2559537887573242,
+        0.06379599571228045
+      ],
+      "directed_advantage_mean": -0.09607889652252188,
+      "mean": 9.376014849593751
+    },
+    {
+      "a": "mod_arith",
+      "b": "letter_shift",
+      "commutator": [
+        6.761711895952865,
+        10.270258578519094
+      ],
+      "directed_advantage": [
+        0.499434542655945,
+        1.1546761214733121
+      ],
+      "directed_advantage_mean": 0.8270553320646286,
+      "mean": 8.515985237235979
+    },
+    {
+      "a": "mod_arith",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        9.005678396412351,
+        3.7458338305606946
+      ],
+      "directed_advantage": [
+        0.7791730403900141,
+        0.34271104335784885
+      ],
+      "directed_advantage_mean": 0.5609420418739315,
+      "mean": 6.375756113486523
+    },
+    {
+      "a": "mod_arith",
+      "b": "pattern_repeat",
+      "commutator": [
+        6.444225072021134,
+        6.530514013419612
+      ],
+      "directed_advantage": [
+        0.055500823259353904,
+        -0.6992344379425051
+      ],
+      "directed_advantage_mean": -0.3218668073415756,
+      "mean": 6.487369542720373
+    },
+    {
+      "a": "mod_arith",
+      "b": "pattern_alternate",
+      "commutator": [
+        10.850321726616322,
+        10.020560947037099
+      ],
+      "directed_advantage": [
+        0.7324468418955803,
+        0.6777634650468825
+      ],
+      "directed_advantage_mean": 0.7051051534712314,
+      "mean": 10.43544133682671
+    },
+    {
+      "a": "mod_arith",
+      "b": "count_chars",
+      "commutator": [
+        8.781817924361873,
+        7.163376769927043
+      ],
+      "directed_advantage": [
+        0.7971615880727771,
+        -0.2427102893590929
+      ],
+      "directed_advantage_mean": 0.27722564935684213,
+      "mean": 7.972597347144458
+    },
+    {
+      "a": "mod_arith",
+      "b": "concat_fields",
+      "commutator": [
+        11.415881300664202,
+        11.615509472265627
+      ],
+      "directed_advantage": [
+        0.1594423472881319,
+        0.7973822474479677
+      ],
+      "directed_advantage_mean": 0.4784122973680498,
+      "mean": 11.515695386464914
+    },
+    {
+      "a": "mod_arith",
+      "b": "field_lookup",
+      "commutator": [
+        10.112726609022673,
+        12.481450581603838
+      ],
+      "directed_advantage": [
+        0.29728174209594727,
+        0.3952380895614631
+      ],
+      "directed_advantage_mean": 0.3462599158287052,
+      "mean": 11.297088595313255
+    },
+    {
+      "a": "mod_arith",
+      "b": "mixed_review",
+      "commutator": [
+        5.5275871181491745,
+        6.72359671000828
+      ],
+      "directed_advantage": [
+        0.9166996657848356,
+        1.2810900121927262
+      ],
+      "directed_advantage_mean": 1.098894838988781,
+      "mean": 6.125591914078727
+    },
+    {
+      "a": "compare_numbers",
+      "b": "bracket_match",
+      "commutator": [
+        8.349467541264184,
+        7.711891635446987
+      ],
+      "directed_advantage": [
+        -1.0912027150392536,
+        -1.0365988522768017
+      ],
+      "directed_advantage_mean": -1.0639007836580276,
+      "mean": 8.030679588355586
+    },
+    {
+      "a": "compare_numbers",
+      "b": "bracket_depth",
+      "commutator": [
+        6.687829912874799,
+        8.875180864551107
+      ],
+      "directed_advantage": [
+        -0.9076722055673598,
+        -1.3444275528192517
+      ],
+      "directed_advantage_mean": -1.1260498791933058,
+      "mean": 7.781505388712953
+    },
+    {
+      "a": "compare_numbers",
+      "b": "letter_shift",
+      "commutator": [
+        5.182636978365984,
+        4.976573990555566
+      ],
+      "directed_advantage": [
+        -0.45804404020309475,
+        0.2521241486072543
+      ],
+      "directed_advantage_mean": -0.10295994579792023,
+      "mean": 5.0796054844607745
+    },
+    {
+      "a": "compare_numbers",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        6.51986824599302,
+        6.508973627986054
+      ],
+      "directed_advantage": [
+        -0.6105286777019501,
+        -0.6503028154373172
+      ],
+      "directed_advantage_mean": -0.6304157465696336,
+      "mean": 6.514420936989538
+    },
+    {
+      "a": "compare_numbers",
+      "b": "pattern_repeat",
+      "commutator": [
+        3.9569575674450594,
+        5.335585162622809
+      ],
+      "directed_advantage": [
+        -0.28640771508216867,
+        -0.44244869947433463
+      ],
+      "directed_advantage_mean": -0.36442820727825165,
+      "mean": 4.646271365033934
+    },
+    {
+      "a": "compare_numbers",
+      "b": "pattern_alternate",
+      "commutator": [
+        4.826292619922445,
+        5.3204498125328294
+      ],
+      "directed_advantage": [
+        -0.5905768156051634,
+        -0.263621486723423
+      ],
+      "directed_advantage_mean": -0.4270991511642932,
+      "mean": 5.073371216227637
+    },
+    {
+      "a": "compare_numbers",
+      "b": "count_chars",
+      "commutator": [
+        7.12721471917536,
+        6.579956222265788
+      ],
+      "directed_advantage": [
+        0.21727609634399414,
+        -0.9842432647943493
+      ],
+      "directed_advantage_mean": -0.3834835842251776,
+      "mean": 6.853585470720574
+    },
+    {
+      "a": "compare_numbers",
+      "b": "concat_fields",
+      "commutator": [
+        6.172176166122168,
+        10.242403338455345
+      ],
+      "directed_advantage": [
+        -0.06785813570022592,
+        -1.6299811959266663
+      ],
+      "directed_advantage_mean": -0.8489196658134461,
+      "mean": 8.207289752288757
+    },
+    {
+      "a": "compare_numbers",
+      "b": "field_lookup",
+      "commutator": [
+        9.290162230696428,
+        6.459303289046217
+      ],
+      "directed_advantage": [
+        -1.2957950353622438,
+        -0.38319972753524745
+      ],
+      "directed_advantage_mean": -0.8394973814487456,
+      "mean": 7.874732759871323
+    },
+    {
+      "a": "compare_numbers",
+      "b": "mixed_review",
+      "commutator": [
+        3.3364837947934967,
+        2.4786380039003055
+      ],
+      "directed_advantage": [
+        0.652073687314987,
+        0.3870033353567124
+      ],
+      "directed_advantage_mean": 0.5195385113358497,
+      "mean": 2.907560899346901
+    },
+    {
+      "a": "bracket_match",
+      "b": "bracket_depth",
+      "commutator": [
+        7.869441320201862,
+        4.386355702178311
+      ],
+      "directed_advantage": [
+        1.324778294563293,
+        0.6220044851303101
+      ],
+      "directed_advantage_mean": 0.9733913898468016,
+      "mean": 6.127898511190086
+    },
+    {
+      "a": "bracket_match",
+      "b": "letter_shift",
+      "commutator": [
+        5.111983847733171,
+        4.804695738855353
+      ],
+      "directed_advantage": [
+        0.6252147644758224,
+        0.004336842894554049
+      ],
+      "directed_advantage_mean": 0.3147758036851882,
+      "mean": 4.958339793294262
+    },
+    {
+      "a": "bracket_match",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        5.0362851783008145,
+        4.925131497066514
+      ],
+      "directed_advantage": [
+        0.7112445890903469,
+        0.44617467820644396
+      ],
+      "directed_advantage_mean": 0.5787096336483954,
+      "mean": 4.980708337683664
+    },
+    {
+      "a": "bracket_match",
+      "b": "pattern_repeat",
+      "commutator": [
+        2.741133381549901,
+        3.0191359981886414
+      ],
+      "directed_advantage": [
+        -0.04904948472976667,
+        0.12081374526023847
+      ],
+      "directed_advantage_mean": 0.0358821302652359,
+      "mean": 2.880134689869271
+    },
+    {
+      "a": "bracket_match",
+      "b": "pattern_alternate",
+      "commutator": [
+        4.805340082977799,
+        5.720450343533709
+      ],
+      "directed_advantage": [
+        0.38511012494564056,
+        0.8830539032816889
+      ],
+      "directed_advantage_mean": 0.6340820141136647,
+      "mean": 5.262895213255754
+    },
+    {
+      "a": "bracket_match",
+      "b": "count_chars",
+      "commutator": [
+        5.005244092227164,
+        6.349396461104352
+      ],
+      "directed_advantage": [
+        -0.21145529747009295,
+        0.9311641752719879
+      ],
+      "directed_advantage_mean": 0.3598544389009475,
+      "mean": 5.677320276665758
+    },
+    {
+      "a": "bracket_match",
+      "b": "concat_fields",
+      "commutator": [
+        7.791533376472482,
+        8.70643650178504
+      ],
+      "directed_advantage": [
+        -0.19190391898155212,
+        1.4069492757320408
+      ],
+      "directed_advantage_mean": 0.6075226783752443,
+      "mean": 8.24898493912876
+    },
+    {
+      "a": "bracket_match",
+      "b": "field_lookup",
+      "commutator": [
+        4.50914406925073,
+        6.77882089438628
+      ],
+      "directed_advantage": [
+        0.32670440673828116,
+        0.011329936981201438
+      ],
+      "directed_advantage_mean": 0.1690171718597413,
+      "mean": 5.6439824818185045
+    },
+    {
+      "a": "bracket_match",
+      "b": "mixed_review",
+      "commutator": [
+        3.040457347768822,
+        4.994587050839496
+      ],
+      "directed_advantage": [
+        0.4688124150037767,
+        0.8475137025117876
+      ],
+      "directed_advantage_mean": 0.6581630587577821,
+      "mean": 4.017522199304159
+    },
+    {
+      "a": "bracket_depth",
+      "b": "letter_shift",
+      "commutator": [
+        5.328832043101239,
+        5.071837854954479
+      ],
+      "directed_advantage": [
+        0.7928251832723614,
+        0.8554397523403168
+      ],
+      "directed_advantage_mean": 0.8241324678063391,
+      "mean": 5.200334949027859
+    },
+    {
+      "a": "bracket_depth",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        3.224135560270044,
+        3.905830347830492
+      ],
+      "directed_advantage": [
+        0.06218082606792441,
+        0.13956413865089434
+      ],
+      "directed_advantage_mean": 0.10087248235940938,
+      "mean": 3.5649829540502678
+    },
+    {
+      "a": "bracket_depth",
+      "b": "pattern_repeat",
+      "commutator": [
+        3.959245765593797,
+        3.2126390418186728
+      ],
+      "directed_advantage": [
+        -0.3053654670715331,
+        -0.23318009823560715
+      ],
+      "directed_advantage_mean": -0.26927278265357013,
+      "mean": 3.585942403706235
+    },
+    {
+      "a": "bracket_depth",
+      "b": "pattern_alternate",
+      "commutator": [
+        6.298127493819537,
+        3.9002526671254545
+      ],
+      "directed_advantage": [
+        0.26902793049812335,
+        0.2598246827721593
+      ],
+      "directed_advantage_mean": 0.26442630663514133,
+      "mean": 5.099190080472496
+    },
+    {
+      "a": "bracket_depth",
+      "b": "count_chars",
+      "commutator": [
+        2.3545535012223016,
+        7.0226003533025585
+      ],
+      "directed_advantage": [
+        -0.08991658389568347,
+        1.2752559632062912
+      ],
+      "directed_advantage_mean": 0.5926696896553039,
+      "mean": 4.68857692726243
+    },
+    {
+      "a": "bracket_depth",
+      "b": "concat_fields",
+      "commutator": [
+        2.740919899517848,
+        3.7393069748411665
+      ],
+      "directed_advantage": [
+        0.0762101262807846,
+        0.14853613674640664
+      ],
+      "directed_advantage_mean": 0.11237313151359563,
+      "mean": 3.2401134371795073
+    },
+    {
+      "a": "bracket_depth",
+      "b": "field_lookup",
+      "commutator": [
+        10.487877723481779,
+        9.192844711244748
+      ],
+      "directed_advantage": [
+        2.041999572515488,
+        1.663618332147598
+      ],
+      "directed_advantage_mean": 1.852808952331543,
+      "mean": 9.840361217363263
+    },
+    {
+      "a": "bracket_depth",
+      "b": "mixed_review",
+      "commutator": [
+        5.428349115082102,
+        4.956339587668657
+      ],
+      "directed_advantage": [
+        1.0612762451171873,
+        0.9633450120687486
+      ],
+      "directed_advantage_mean": 1.012310628592968,
+      "mean": 5.192344351375379
+    },
+    {
+      "a": "letter_shift",
+      "b": "letter_shift_conflict",
+      "commutator": [
+        0.7201167379969642,
+        1.1683005905655683
+      ],
+      "directed_advantage": [
+        0.07374783158302334,
+        0.12440593242645281
+      ],
+      "directed_advantage_mean": 0.09907688200473808,
+      "mean": 0.9442086642812663
+    },
+    {
+      "a": "letter_shift",
+      "b": "pattern_repeat",
+      "commutator": [
+        2.272818820673415,
+        1.9183272165262413
+      ],
+      "directed_advantage": [
+        0.06617447435855883,
+        0.11614274680614489
+      ],
+      "directed_advantage_mean": 0.09115861058235186,
+      "mean": 2.0955730185998283
+    },
+    {
+      "a": "letter_shift",
+      "b": "pattern_alternate",
+      "commutator": [
+        3.1836033254861453,
+        3.525401565017829
+      ],
+      "directed_advantage": [
+        -0.3206751435995101,
+        -0.42222612053155917
+      ],
+      "directed_advantage_mean": -0.37145063206553464,
+      "mean": 3.3545024452519874
+    },
+    {
+      "a": "letter_shift",
+      "b": "count_chars",
+      "commutator": [
+        2.7013803094346214,
+        3.7700231624600224
+      ],
+      "directed_advantage": [
+        0.15384550988674173,
+        -0.5015899688005447
+      ],
+      "directed_advantage_mean": -0.1738722294569015,
+      "mean": 3.235701735947322
+    },
+    {
+      "a": "letter_shift",
+      "b": "concat_fields",
+      "commutator": [
+        4.138038461019411,
+        3.2775145841967293
+      ],
+      "directed_advantage": [
+        -0.11837068200111389,
+        -0.1391225218772889
+      ],
+      "directed_advantage_mean": -0.1287466019392014,
+      "mean": 3.70777652260807
+    },
+    {
+      "a": "letter_shift",
+      "b": "field_lookup",
+      "commutator": [
+        4.538928775369692,
+        4.178478910304485
+      ],
+      "directed_advantage": [
+        0.126437246799469,
+        -0.02724165916442889
+      ],
+      "directed_advantage_mean": 0.04959779381752005,
+      "mean": 4.358703842837089
+    },
+    {
+      "a": "letter_shift",
+      "b": "mixed_review",
+      "commutator": [
+        2.3544809617612854,
+        2.600456626261428
+      ],
+      "directed_advantage": [
+        0.42014853358268733,
+        0.4853070348501205
+      ],
+      "directed_advantage_mean": 0.4527277842164039,
+      "mean": 2.4774687940113567
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "pattern_repeat",
+      "commutator": [
+        1.8223382327262292,
+        1.6085108110474047
+      ],
+      "directed_advantage": [
+        -0.14671562910079938,
+        -0.08295899629592896
+      ],
+      "directed_advantage_mean": -0.11483731269836417,
+      "mean": 1.715424521886817
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "pattern_alternate",
+      "commutator": [
+        4.720589989795866,
+        3.9207776622080517
+      ],
+      "directed_advantage": [
+        -0.7665026351809501,
+        -0.6840543359518052
+      ],
+      "directed_advantage_mean": -0.7252784855663776,
+      "mean": 4.320683826001959
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "count_chars",
+      "commutator": [
+        4.641350506217868,
+        4.088956269288582
+      ],
+      "directed_advantage": [
+        -0.6900271683931347,
+        -0.6464645624160767
+      ],
+      "directed_advantage_mean": -0.6682458654046057,
+      "mean": 4.3651533877532245
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "concat_fields",
+      "commutator": [
+        3.2936741400245926,
+        2.797764399045451
+      ],
+      "directed_advantage": [
+        -0.3009622752666474,
+        -0.16748427152633694
+      ],
+      "directed_advantage_mean": -0.23422327339649218,
+      "mean": 3.045719269535022
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "field_lookup",
+      "commutator": [
+        2.579664442966371,
+        2.850110167472545
+      ],
+      "directed_advantage": [
+        0.009434854984283536,
+        0.08931769132614154
+      ],
+      "directed_advantage_mean": 0.049376273155212536,
+      "mean": 2.7148873052194578
+    },
+    {
+      "a": "letter_shift_conflict",
+      "b": "mixed_review",
+      "commutator": [
+        2.7214814959119553,
+        2.640927430830331
+      ],
+      "directed_advantage": [
+        0.5210453748703006,
+        0.5105944484472273
+      ],
+      "directed_advantage_mean": 0.515819911658764,
+      "mean": 2.6812044633711434
+    },
+    {
+      "a": "pattern_repeat",
+      "b": "pattern_alternate",
+      "commutator": [
+        1.923497815587004,
+        1.8138865466761822
+      ],
+      "directed_advantage": [
+        -0.0849334806203843,
+        0.12457954734563836
+      ],
+      "directed_advantage_mean": 0.01982303336262703,
+      "mean": 1.868692181131593
+    },
+    {
+      "a": "pattern_repeat",
+      "b": "count_chars",
+      "commutator": [
+        3.4234281642223614,
+        5.7882109073119645
+      ],
+      "directed_advantage": [
+        0.4565490350127219,
+        0.8146830290555953
+      ],
+      "directed_advantage_mean": 0.6356160320341586,
+      "mean": 4.6058195357671625
+    },
+    {
+      "a": "pattern_repeat",
+      "b": "concat_fields",
+      "commutator": [
+        2.7247288641314547,
+        2.258247673154325
+      ],
+      "directed_advantage": [
+        -0.09276556074619258,
+        -0.08652636110782597
+      ],
+      "directed_advantage_mean": -0.08964596092700927,
+      "mean": 2.4914882686428896
+    },
+    {
+      "a": "pattern_repeat",
+      "b": "field_lookup",
+      "commutator": [
+        5.281695102210154,
+        2.7444136731719717
+      ],
+      "directed_advantage": [
+        -0.9332653462886813,
+        -0.11547913253307351
+      ],
+      "directed_advantage_mean": -0.5243722394108774,
+      "mean": 4.013054387691063
+    },
+    {
+      "a": "pattern_repeat",
+      "b": "mixed_review",
+      "commutator": [
+        2.117307623995551,
+        2.300901806623131
+      ],
+      "directed_advantage": [
+        0.37642390727996844,
+        0.42150040268898015
+      ],
+      "directed_advantage_mean": 0.3989621549844743,
+      "mean": 2.209104715309341
+    },
+    {
+      "a": "pattern_alternate",
+      "b": "count_chars",
+      "commutator": [
+        5.409755869692446,
+        5.043372664704024
+      ],
+      "directed_advantage": [
+        -0.9520767301321027,
+        -0.8269895493984225
+      ],
+      "directed_advantage_mean": -0.8895331397652626,
+      "mean": 5.226564267198235
+    },
+    {
+      "a": "pattern_alternate",
+      "b": "concat_fields",
+      "commutator": [
+        1.390048520645786,
+        1.7890850999068726
+      ],
+      "directed_advantage": [
+        -0.04607958346605301,
+        -0.10621783435344678
+      ],
+      "directed_advantage_mean": -0.0761487089097499,
+      "mean": 1.5895668102763292
+    },
+    {
+      "a": "pattern_alternate",
+      "b": "field_lookup",
+      "commutator": [
+        3.536864182468661,
+        4.77567856196481
+      ],
+      "directed_advantage": [
+        0.30839849412441245,
+        -0.5435254916548731
+      ],
+      "directed_advantage_mean": -0.11756349876523031,
+      "mean": 4.156271372216736
+    },
+    {
+      "a": "pattern_alternate",
+      "b": "mixed_review",
+      "commutator": [
+        2.2869748409496493,
+        2.6055645408090435
+      ],
+      "directed_advantage": [
+        0.40491573065519315,
+        0.3883426368236542
+      ],
+      "directed_advantage_mean": 0.3966291837394237,
+      "mean": 2.4462696908793466
+    },
+    {
+      "a": "count_chars",
+      "b": "concat_fields",
+      "commutator": [
+        8.552397095618414,
+        8.809150766794449
+      ],
+      "directed_advantage": [
+        1.7535796433687212,
+        1.7426079511642456
+      ],
+      "directed_advantage_mean": 1.7480937972664834,
+      "mean": 8.680773931206431
+    },
+    {
+      "a": "count_chars",
+      "b": "field_lookup",
+      "commutator": [
+        5.5842332345048336,
+        3.5278048846511134
+      ],
+      "directed_advantage": [
+        0.5105042845010761,
+        0.3280222475528718
+      ],
+      "directed_advantage_mean": 0.41926326602697395,
+      "mean": 4.556019059577974
+    },
+    {
+      "a": "count_chars",
+      "b": "mixed_review",
+      "commutator": [
+        3.931834466823932,
+        2.863712205074163
+      ],
+      "directed_advantage": [
+        0.7983831912279129,
+        0.3274354726076125
+      ],
+      "directed_advantage_mean": 0.5629093319177627,
+      "mean": 3.397773335949047
+    },
+    {
+      "a": "concat_fields",
+      "b": "field_lookup",
+      "commutator": [
+        6.315051792231228,
+        5.96021083499616
+      ],
+      "directed_advantage": [
+        -1.1981801390647888,
+        -1.2026562452316285
+      ],
+      "directed_advantage_mean": -1.2004181921482087,
+      "mean": 6.137631313613694
+    },
+    {
+      "a": "concat_fields",
+      "b": "mixed_review",
+      "commutator": [
+        2.618316671708249,
+        2.5765155744002817
+      ],
+      "directed_advantage": [
+        0.47266628146171574,
+        0.44907240271568294
+      ],
+      "directed_advantage_mean": 0.46086934208869934,
+      "mean": 2.5974161230542654
+    },
+    {
+      "a": "field_lookup",
+      "b": "mixed_review",
+      "commutator": [
+        2.629998107146751,
+        2.7398944651241575
+      ],
+      "directed_advantage": [
+        0.40662147998809806,
+        0.43660688400268555
+      ],
+      "directed_advantage_mean": 0.4216141819953918,
+      "mean": 2.684946286135454
+    }
+  ],
+  "provenance": {
+    "args": {
+      "device": "cuda",
+      "out": "results/commutator_tail.json",
+      "pairs": 190,
+      "pretrain_steps": 300,
+      "repeats": 2,
+      "seed": 0,
+      "steps": 8
+    },
+    "config_hash": "22fa36c66e6cff88",
+    "environment_version": "real-v1",
+    "git_commit": "9ca409d9e769c4d2c41aa3c379c278c112bb4e6b",
+    "seed": 0,
+    "simulator_version": "none:measurement-only",
+    "target_checkpoint": "pretrain-300steps-seed0"
+  },
+  "repeatability": {
+    "pearson_r_repeat1_repeat2": 0.7315776284289387
+  },
+  "tail_statistics": {
+    "excess_kurtosis": -0.11254508312650735,
+    "max": 12.27946218367859,
+    "mean": 5.784179827394558,
+    "median": 5.284068669234871,
+    "p90": 9.245577712225185,
+    "p99": 11.567767955628687,
+    "top_decile_share": 0.18465176595188135
+  }
+}
