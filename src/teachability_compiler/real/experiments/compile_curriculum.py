@@ -30,11 +30,21 @@ POLICIES = (
     "mixed_review",
     "loss_greedy",
     "compiler",
+    "staged",
     "oracle_greedy",
 )
 
 SIMULATOR_VERSION = "residual-mlp-v1"
 ENVIRONMENT_VERSION = "real-v1"
+
+# Highest mid-training commutator pairs from prior measurement.
+COMMUTATOR_PANEL_PAIRS = (
+    ("mod_arith", "bracket_match"),
+    ("add_2digit", "bracket_match"),
+    ("add_1digit", "bracket_depth"),
+    ("compare_numbers", "bracket_depth"),
+    ("add_1digit", "pattern_alternate"),
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -65,6 +75,8 @@ def _record_trajectory_point(
     action_index: int,
     tokens: int,
     chosen_cluster: str | None,
+    gain_ema: float | None = None,
+    realized_gain_ema: float | None = None,
 ) -> np.ndarray:
     """Append a trajectory point and return the visible loss vector.
 
@@ -86,6 +98,10 @@ def _record_trajectory_point(
             "visible_losses": visible_losses.tolist(),
             "hidden_losses": hidden_losses.tolist(),
             "chosen_cluster": chosen_cluster,
+            "gain_ema": (float(gain_ema) if gain_ema is not None else None),
+            "realized_gain_ema": (
+                float(realized_gain_ema) if realized_gain_ema is not None else None
+            ),
         }
     )
     return visible_losses
@@ -138,6 +154,15 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--out", type=str, default=None)
     parser.add_argument("--save-transitions", type=str, default=None)
 
+    # Staged policy + switch-trigger instrumentation knobs.
+    parser.add_argument("--switch-threshold", type=float, default=0.002)
+    parser.add_argument("--switch-min-actions", type=int, default=100)
+    parser.add_argument("--gain-ema-alpha", type=float, default=0.2)
+    parser.add_argument("--recency-penalty", type=float, default=0.3)
+    parser.add_argument("--recency-decay", type=float, default=0.7)
+    parser.add_argument("--probe-pairs", type=int, default=3)
+    parser.add_argument("--probe-every", type=int, default=150)
+
     # Apparatus knobs (kept as CLI args so the smoke test can run a tiny model).
     parser.add_argument("--batch-size", type=int, default=64)
     parser.add_argument("--seq-len", type=int, default=64)
@@ -180,6 +205,24 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
 
     if not 0.0 <= args.explore_epsilon <= 1.0:
         parser.error("--explore-epsilon must be in [0, 1]")
+
+    if args.switch_threshold < 0.0:
+        parser.error("--switch-threshold must be non-negative")
+
+    if not 0.0 < args.gain_ema_alpha <= 1.0:
+        parser.error("--gain-ema-alpha must be in (0, 1]")
+
+    if args.recency_penalty < 0.0:
+        parser.error("--recency-penalty must be non-negative")
+
+    if not 0.0 <= args.recency_decay < 1.0:
+        parser.error("--recency-decay must be in [0, 1)")
+
+    if args.probe_pairs < 0:
+        parser.error("--probe-pairs must be non-negative")
+
+    if args.probe_every <= 0:
+        parser.error("--probe-every must be positive")
 
 
 def _make_action(cluster_name: str, steps: int, token_budget: int) -> CurriculumAction:
@@ -224,6 +267,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
 
     torch.manual_seed(args.seed)
     rng = np.random.default_rng(args.seed)
+    panel_rng = np.random.default_rng(args.seed + 1_000_003)
 
     cluster_names = tasks.all_cluster_names()
     n_clusters = len(cluster_names)
@@ -271,6 +315,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     def next_seed() -> int:
         return int(rng.integers(0, 2**31 - 1))
 
+    def next_panel_seed() -> int:
+        return int(panel_rng.integers(0, 2**31 - 1))
+
     def action_for(cluster_index: int) -> CurriculumAction:
         return _make_action(cluster_names[cluster_index], steps, tokens_per_action)
 
@@ -288,10 +335,30 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
     predictor: ResidualMLPTransitionPredictor | None = None
     transition_pool: list[Any] = []
 
+    # Switch-trigger instrumentation state (compiler + staged).
+    alpha = float(args.gain_ema_alpha)
+    gain_ema: float | None = None
+    realized_gain_ema: float | None = None
+    prev_visible_mean: float | None = None
+    switched = False
+    switch_action_index: int | None = None
+    recency = np.zeros(n_clusters, dtype=np.float64)
+    commutator_panel: list[dict[str, Any]] = []
+    panel_pairs = COMMUTATOR_PANEL_PAIRS[: args.probe_pairs]
+
+    def _coverage_select(visible_losses: np.ndarray) -> int:
+        # Damped loss_greedy: decay recency first, then score visible losses.
+        recency[:] *= args.recency_decay
+        scores = visible_losses - args.recency_penalty * recency
+        return sorted(
+            range(n_clusters),
+            key=lambda index: (-scores[index], cluster_names[index]),
+        )[0]
+
     wall_start = time.perf_counter()
 
-    # Compiler-specific: predictor + transition pool + bootstrap.
-    if args.policy == "compiler":
+    # Compiler/staged: predictor + transition pool + bootstrap.
+    if args.policy in {"compiler", "staged"}:
         predictor = ResidualMLPTransitionPredictor(
             cluster_names,
             device=args.device,
@@ -313,7 +380,7 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
 
         if not transition_pool:
             raise ValueError(
-                "compiler policy requires at least one bootstrap transition"
+                f"{args.policy} policy requires at least one bootstrap transition"
             )
 
         refit_start = time.perf_counter()
@@ -348,6 +415,20 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
             if target is None:
                 raise RuntimeError("target must be loaded for non-reference policies")
             visible_for_policy = np.asarray(oracle.probe_losses(), dtype=np.float64)
+
+            # Realized-gain EMA (learning-velocity signal) for compiler + staged.
+            if args.policy in {"compiler", "staged"}:
+                current_visible_mean = float(np.mean(visible_for_policy))
+                if prev_visible_mean is not None:
+                    realized = prev_visible_mean - current_visible_mean
+                    if realized_gain_ema is None:
+                        realized_gain_ema = realized
+                    else:
+                        realized_gain_ema = (
+                            alpha * realized + (1.0 - alpha) * realized_gain_ema
+                        )
+                prev_visible_mean = current_visible_mean
+
             if _target_reached(visible_for_policy, target, args.epsilon):
                 reached = True
                 break
@@ -366,31 +447,81 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
                 range(n_clusters),
                 key=lambda index: (-visible_for_policy[index], cluster_names[index]),
             )[0]
-        elif args.policy == "compiler" and rng.random() < args.explore_epsilon:
-            # Exploration keeps the online transition pool diverse; without it
-            # the refits only ever see the incumbent argmax action's data.
-            chosen_id = int(rng.integers(0, n_clusters))
-        elif args.policy == "compiler":
-            if predictor is None:
-                raise RuntimeError("compiler predictor was not initialized")
-            state = oracle.encode_state()
-            best_score = -float("inf")
-            chosen_id = 0
-            for candidate_id in range(n_clusters):
-                prediction = predictor.predict(state, action_for(candidate_id))
-                predicted_losses = np.asarray(
-                    prediction.next_state_mean.probe_losses,
-                    dtype=np.float64,
+        elif args.policy in {"compiler", "staged"}:
+            action_idx = executed + 1
+            coverage_phase = args.policy == "staged" and switched
+
+            if (
+                args.policy == "staged"
+                and not switched
+                and gain_ema is not None
+                and action_idx >= args.switch_min_actions
+                and gain_ema < args.switch_threshold
+            ):
+                switched = True
+                switch_action_index = action_idx
+                print(
+                    f"[staged] switch at action {action_idx} "
+                    f"(gain_ema={gain_ema})"
                 )
-                if not np.all(np.isfinite(predicted_losses)):
-                    raise ValueError(
-                        "Non-finite simulator prediction for "
-                        f"{cluster_names[candidate_id]!r}"
+                coverage_phase = True
+
+            if coverage_phase:
+                if visible_for_policy is None:
+                    raise RuntimeError("visible losses required for staged coverage")
+                chosen_id = _coverage_select(visible_for_policy)
+            elif rng.random() < args.explore_epsilon:
+                # Exploration keeps the online transition pool diverse; without
+                # it the refits only ever see the incumbent argmax action's data.
+                chosen_id = int(rng.integers(0, n_clusters))
+            else:
+                if predictor is None:
+                    raise RuntimeError("compiler predictor was not initialized")
+                state = oracle.encode_state()
+                current_state_mean = float(
+                    np.mean(np.asarray(state.probe_losses, dtype=np.float64))
+                )
+                best_score = -float("inf")
+                chosen_id = 0
+                for candidate_id in range(n_clusters):
+                    prediction = predictor.predict(state, action_for(candidate_id))
+                    predicted_losses = np.asarray(
+                        prediction.next_state_mean.probe_losses,
+                        dtype=np.float64,
                     )
-                score = -float(np.mean(predicted_losses))
-                if score > best_score:
-                    best_score = score
-                    chosen_id = candidate_id
+                    if not np.all(np.isfinite(predicted_losses)):
+                        raise ValueError(
+                            "Non-finite simulator prediction for "
+                            f"{cluster_names[candidate_id]!r}"
+                        )
+                    score = -float(np.mean(predicted_losses))
+                    if score > best_score:
+                        best_score = score
+                        chosen_id = candidate_id
+
+                predicted_best_gain = current_state_mean - (-best_score)
+                if gain_ema is None:
+                    gain_ema = predicted_best_gain
+                else:
+                    gain_ema = (
+                        alpha * predicted_best_gain + (1.0 - alpha) * gain_ema
+                    )
+
+                # Staged pragmatic switch to coverage.
+                if (
+                    args.policy == "staged"
+                    and action_idx >= args.switch_min_actions
+                    and gain_ema < args.switch_threshold
+                ):
+                    switched = True
+                    switch_action_index = action_idx
+                    print(
+                        f"[staged] switch at action {action_idx} "
+                        f"(gain_ema={gain_ema})"
+                    )
+                    if visible_for_policy is None:
+                        raise RuntimeError("visible losses required for staged coverage")
+                    chosen_id = _coverage_select(visible_for_policy)
         elif args.policy == "oracle_greedy":
             snapshot = oracle.snapshot()
             best_value = -float("inf")
@@ -418,7 +549,11 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         # --- execution on the real oracle -----------------------------------
         observation = oracle.apply_action(action_for(chosen_id), next_seed())
         race_observations.append(observation)
-        if args.policy == "compiler":
+
+        opening_phase = args.policy == "compiler" or (
+            args.policy == "staged" and not switched
+        )
+        if opening_phase:
             transition_pool.append(observation)
 
         executed += 1
@@ -427,8 +562,12 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         last_cluster = cluster_names[chosen_id]
         action_counts[last_cluster] += 1
 
-        # Compiler simulator refit from scratch on ALL accumulated transitions.
-        if args.policy == "compiler" and executed % args.refit_every == 0:
+        # Coverage recency bookkeeping (staged only, after the switch).
+        if args.policy == "staged" and switched:
+            recency[chosen_id] += 1.0
+
+        # Simulator refit from scratch on ALL accumulated transitions (opening).
+        if opening_phase and executed % args.refit_every == 0:
             if predictor is None:
                 raise RuntimeError("compiler predictor was not initialized")
             refit_start = time.perf_counter()
@@ -437,12 +576,15 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
 
         # Record every 8 actions.
         if executed % 8 == 0:
+            log_gain = None if (args.policy == "staged" and switched) else gain_ema
             _record_trajectory_point(
                 oracle,
                 trajectory,
                 action_index=executed,
                 tokens=race_tokens,
                 chosen_cluster=last_cluster,
+                gain_ema=log_gain,
+                realized_gain_ema=realized_gain_ema,
             )
 
         # Compact progress line every 40 actions (reuses last recorded point).
@@ -455,14 +597,59 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
                 f"tokens={race_tokens}"
             )
 
+        # In-race commutator panel (compiler + staged), overhead-only.
+        if (
+            args.policy in {"compiler", "staged"}
+            and args.probe_pairs > 0
+            and executed % args.probe_every == 0
+        ):
+            panel_snapshot = oracle.snapshot()
+            try:
+                for pair_a, pair_b in panel_pairs:
+                    a_id = cluster_names.index(pair_a)
+                    b_id = cluster_names.index(pair_b)
+
+                    oracle.restore(panel_snapshot)
+                    oracle.apply_action(action_for(a_id), next_panel_seed())
+                    oracle.apply_action(action_for(b_id), next_panel_seed())
+                    ab_losses = np.asarray(oracle.probe_losses(), dtype=np.float64)
+
+                    oracle.restore(panel_snapshot)
+                    oracle.apply_action(action_for(b_id), next_panel_seed())
+                    oracle.apply_action(action_for(a_id), next_panel_seed())
+                    ba_losses = np.asarray(oracle.probe_losses(), dtype=np.float64)
+
+                    if not np.all(np.isfinite(ab_losses)) or not np.all(
+                        np.isfinite(ba_losses)
+                    ):
+                        raise ValueError(
+                            "Non-finite visible probe loss in commutator panel"
+                        )
+
+                    commutator = float(np.linalg.norm(ab_losses - ba_losses))
+                    exploration_optimizer_steps += 4 * steps
+                    overhead_tokens += 4 * tokens_per_action
+                    commutator_panel.append(
+                        {
+                            "action_index": int(executed),
+                            "pair": [pair_a, pair_b],
+                            "commutator": commutator,
+                        }
+                    )
+            finally:
+                oracle.restore(panel_snapshot)
+
     # Final trajectory point (at termination), avoiding duplicates.
     if not trajectory or trajectory[-1]["action_index"] != executed:
+        log_gain = None if (args.policy == "staged" and switched) else gain_ema
         _record_trajectory_point(
             oracle,
             trajectory,
             action_index=executed,
             tokens=race_tokens,
             chosen_cluster=last_cluster,
+            gain_ema=log_gain,
+            realized_gain_ema=realized_gain_ema,
         )
 
     final_point = trajectory[-1]
@@ -504,6 +691,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
         "final_hidden_losses": final_hidden_losses,
         "target_probe_losses": target_probe_losses,
         "epsilon": float(args.epsilon),
+        "switch_action_index": switch_action_index,
+        "switch_threshold": float(args.switch_threshold),
+        "commutator_panel": commutator_panel,
         "forgetting_auc": _forgetting_auc(trajectory),
         "trajectory": trajectory,
         "action_counts": action_counts,
@@ -513,7 +703,9 @@ def main(argv: list[str] | None = None) -> dict[str, Any]:
             "git_commit": git_commit,
             "target_checkpoint": target_checkpoint,
             "simulator_version": (
-                SIMULATOR_VERSION if args.policy == "compiler" else "none"
+                SIMULATOR_VERSION
+                if args.policy in {"compiler", "staged"}
+                else "none"
             ),
             "environment_version": ENVIRONMENT_VERSION,
             "probe_suite_hash": current_probe_suite_hash,
