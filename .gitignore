@@ -16,3 +16,4 @@ artifacts/
 *.ckpt
 .DS_Store
 results/transitions/
+data/

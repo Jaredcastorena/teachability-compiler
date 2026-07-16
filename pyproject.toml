@@ -20,6 +20,13 @@ dev = [
 real = [
   "torch>=2.7",
 ]
+lm = [
+  "torch>=2.7",
+  "pyarrow>=15",
+  "pandas>=2",
+  "sentence-transformers>=3",
+  "transformers>=4.40",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -43,3 +50,12 @@ module = "teachability_compiler.real.*"
 warn_return_any = false
 disallow_untyped_calls = false
 disallow_any_generics = false
+
+# The lm/* subpackage touches torch, nanochat, pandas, and HF models — all
+# partially typed. Relax Any-propagation while keeping the numpy core strict.
+[[tool.mypy.overrides]]
+module = "teachability_compiler.lm.*"
+warn_return_any = false
+disallow_untyped_calls = false
+disallow_any_generics = false
+ignore_missing_imports = true
