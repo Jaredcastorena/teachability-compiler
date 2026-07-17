@@ -163,11 +163,13 @@ def main() -> None:
             "wall_seconds": time.time() - wall_start,
         })
         if chunk_index % args.ckpt_every_chunks == 0:
+            tmp_ckpt = ckpt_path.with_suffix(".tmp")
             torch.save(
                 {"snapshot": oracle.snapshot(), "trajectory": trajectory,
                  "chunk_index": chunk_index},
-                ckpt_path,
+                tmp_ckpt,
             )
+            tmp_ckpt.replace(ckpt_path)
         print(f"[reference] chunk {chunk_index} tokens {oracle.tokens_seen/1e6:.0f}M "
               f"val_bpb {val_bpb:.4f} holdout_ce {holdout_ce:.4f} "
               f"({(time.time()-wall_start)/60:.0f} min)", flush=True)

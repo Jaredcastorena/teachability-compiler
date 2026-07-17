@@ -382,8 +382,12 @@ def _save_checkpoint(
         # crash, otherwise a resumed run is a different policy.
         "transition_pool": list(transition_pool or []),
     }
-    torch.save(payload, _checkpoint_path(ckpt_dir))
-    torch.save(payload, ckpt_dir / f"chunk_{chunk_index:06d}.pt")
+    # Keep exactly one checkpoint, written atomically: per-chunk archives
+    # are ~3.1 GB each and filled the disk in production.
+    target = _checkpoint_path(ckpt_dir)
+    tmp = target.with_suffix(".tmp")
+    torch.save(payload, tmp)
+    tmp.replace(target)
 
 
 def _initial_policy_state(num_actions: int) -> dict[str, Any]:

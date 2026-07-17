@@ -1,0 +1,1449 @@
+{
+  "kind": "lm_race",
+  "policy": "compiler",
+  "seed": 10,
+  "token_budget": 600000000,
+  "steps_per_chunk": 50,
+  "trajectory": [
+    {
+      "chunk": 2,
+      "tokens": 3276800,
+      "step": 100,
+      "val_bpb": 1.936052044231203,
+      "holdout_ce": 5.8940370082855225,
+      "probe_mean": 5.925631205240886
+    },
+    {
+      "chunk": 4,
+      "tokens": 6553600,
+      "step": 200,
+      "val_bpb": 1.7997554182249145,
+      "holdout_ce": 5.530279695987701,
+      "probe_mean": 5.424337675174077
+    },
+    {
+      "chunk": 6,
+      "tokens": 9830400,
+      "step": 300,
+      "val_bpb": 1.6605107117064815,
+      "holdout_ce": 5.080706357955933,
+      "probe_mean": 5.067851295073827
+    },
+    {
+      "chunk": 8,
+      "tokens": 13107200,
+      "step": 400,
+      "val_bpb": 1.6013205488913698,
+      "holdout_ce": 4.790757656097412,
+      "probe_mean": 4.865915685892105
+    },
+    {
+      "chunk": 10,
+      "tokens": 16384000,
+      "step": 500,
+      "val_bpb": 1.5454700166943587,
+      "holdout_ce": 4.611063122749329,
+      "probe_mean": 4.664202998081843
+    },
+    {
+      "chunk": 12,
+      "tokens": 19660800,
+      "step": 600,
+      "val_bpb": 1.5330780247068703,
+      "holdout_ce": 4.5829758644104,
+      "probe_mean": 4.62295600771904
+    },
+    {
+      "chunk": 14,
+      "tokens": 22937600,
+      "step": 700,
+      "val_bpb": 1.5185043734217534,
+      "holdout_ce": 4.561064958572388,
+      "probe_mean": 4.591117173433304
+    },
+    {
+      "chunk": 16,
+      "tokens": 26214400,
+      "step": 800,
+      "val_bpb": 1.5063829604361278,
+      "holdout_ce": 4.452725768089294,
+      "probe_mean": 4.517918522159259
+    },
+    {
+      "chunk": 18,
+      "tokens": 29491200,
+      "step": 900,
+      "val_bpb": 1.4820227042616225,
+      "holdout_ce": 4.386537730693817,
+      "probe_mean": 4.413034876187642
+    },
+    {
+      "chunk": 20,
+      "tokens": 32768000,
+      "step": 1000,
+      "val_bpb": 1.4691682087070914,
+      "holdout_ce": 4.394390106201172,
+      "probe_mean": 4.393749480446179
+    },
+    {
+      "chunk": 22,
+      "tokens": 36044800,
+      "step": 1100,
+      "val_bpb": 1.4642201190453081,
+      "holdout_ce": 4.399742364883423,
+      "probe_mean": 4.395767147342364
+    },
+    {
+      "chunk": 24,
+      "tokens": 39321600,
+      "step": 1200,
+      "val_bpb": 1.464221744376841,
+      "holdout_ce": 4.398558437824249,
+      "probe_mean": 4.36335592965285
+    },
+    {
+      "chunk": 26,
+      "tokens": 42598400,
+      "step": 1300,
+      "val_bpb": 1.4470096188874177,
+      "holdout_ce": 4.340377449989319,
+      "probe_mean": 4.336137597759564
+    },
+    {
+      "chunk": 28,
+      "tokens": 45875200,
+      "step": 1400,
+      "val_bpb": 1.4468717946432623,
+      "holdout_ce": 4.352385342121124,
+      "probe_mean": 4.346921920776367
+    },
+    {
+      "chunk": 30,
+      "tokens": 49152000,
+      "step": 1500,
+      "val_bpb": 1.4469285071042506,
+      "holdout_ce": 4.360945641994476,
+      "probe_mean": 4.3717377831538515
+    },
+    {
+      "chunk": 32,
+      "tokens": 52428800,
+      "step": 1600,
+      "val_bpb": 1.4469055202725707,
+      "holdout_ce": 4.3766844272613525,
+      "probe_mean": 4.384493986765544
+    },
+    {
+      "chunk": 34,
+      "tokens": 55705600,
+      "step": 1700,
+      "val_bpb": 1.4402201640431205,
+      "holdout_ce": 4.3093913197517395,
+      "probe_mean": 4.345496435960134
+    },
+    {
+      "chunk": 36,
+      "tokens": 58982400,
+      "step": 1800,
+      "val_bpb": 1.4375090529986403,
+      "holdout_ce": 4.298736333847046,
+      "probe_mean": 4.335279275973638
+    },
+    {
+      "chunk": 38,
+      "tokens": 62259200,
+      "step": 1900,
+      "val_bpb": 1.442197302456189,
+      "holdout_ce": 4.282463014125824,
+      "probe_mean": 4.329878315329552
+    },
+    {
+      "chunk": 40,
+      "tokens": 65536000,
+      "step": 2000,
+      "val_bpb": 1.4395728951093163,
+      "holdout_ce": 4.294194936752319,
+      "probe_mean": 4.325430517395337
+    },
+    {
+      "chunk": 42,
+      "tokens": 68812800,
+      "step": 2100,
+      "val_bpb": 1.5038251142853658,
+      "holdout_ce": 4.524328529834747,
+      "probe_mean": 4.405808225274086
+    },
+    {
+      "chunk": 44,
+      "tokens": 72089600,
+      "step": 2200,
+      "val_bpb": 1.5594202952890426,
+      "holdout_ce": 4.717570245265961,
+      "probe_mean": 4.543594777584076
+    },
+    {
+      "chunk": 46,
+      "tokens": 75366400,
+      "step": 2300,
+      "val_bpb": 1.5957452167021702,
+      "holdout_ce": 4.832717537879944,
+      "probe_mean": 4.677959233522415
+    },
+    {
+      "chunk": 48,
+      "tokens": 78643200,
+      "step": 2400,
+      "val_bpb": 1.6633669803362003,
+      "holdout_ce": 5.062868654727936,
+      "probe_mean": 4.843564848105113
+    },
+    {
+      "chunk": 50,
+      "tokens": 81920000,
+      "step": 2500,
+      "val_bpb": 1.428443263294921,
+      "holdout_ce": 4.300565302371979,
+      "probe_mean": 4.324690992633502
+    },
+    {
+      "chunk": 52,
+      "tokens": 85196800,
+      "step": 2600,
+      "val_bpb": 1.4235559300737735,
+      "holdout_ce": 4.269745707511902,
+      "probe_mean": 4.278147374590238
+    },
+    {
+      "chunk": 54,
+      "tokens": 88473600,
+      "step": 2700,
+      "val_bpb": 1.425694189149636,
+      "holdout_ce": 4.265750408172607,
+      "probe_mean": 4.275781864921252
+    },
+    {
+      "chunk": 56,
+      "tokens": 91750400,
+      "step": 2800,
+      "val_bpb": 1.4257717793811484,
+      "holdout_ce": 4.264307737350464,
+      "probe_mean": 4.291941806674004
+    },
+    {
+      "chunk": 58,
+      "tokens": 95027200,
+      "step": 2900,
+      "val_bpb": 1.4023551732803954,
+      "holdout_ce": 4.203985899686813,
+      "probe_mean": 4.244733090202014
+    },
+    {
+      "chunk": 60,
+      "tokens": 98304000,
+      "step": 3000,
+      "val_bpb": 1.400310573934118,
+      "holdout_ce": 4.221402287483215,
+      "probe_mean": 4.242377758026123
+    },
+    {
+      "chunk": 62,
+      "tokens": 101580800,
+      "step": 3100,
+      "val_bpb": 1.400653480189196,
+      "holdout_ce": 4.218822479248047,
+      "probe_mean": 4.247674624125163
+    },
+    {
+      "chunk": 64,
+      "tokens": 104857600,
+      "step": 3200,
+      "val_bpb": 1.4075575596049348,
+      "holdout_ce": 4.240386962890625,
+      "probe_mean": 4.269801075259845
+    },
+    {
+      "chunk": 66,
+      "tokens": 108134400,
+      "step": 3300,
+      "val_bpb": 1.381445254085487,
+      "holdout_ce": 4.12257918715477,
+      "probe_mean": 4.163479084769885
+    },
+    {
+      "chunk": 68,
+      "tokens": 111411200,
+      "step": 3400,
+      "val_bpb": 1.3738513859020918,
+      "holdout_ce": 4.094734102487564,
+      "probe_mean": 4.117913112044334
+    },
+    {
+      "chunk": 70,
+      "tokens": 114688000,
+      "step": 3500,
+      "val_bpb": 1.3737434367994463,
+      "holdout_ce": 4.088963091373444,
+      "probe_mean": 4.1006429096062975
+    },
+    {
+      "chunk": 72,
+      "tokens": 117964800,
+      "step": 3600,
+      "val_bpb": 1.3713440894969224,
+      "holdout_ce": 4.082688510417938,
+      "probe_mean": 4.091736609737079
+    },
+    {
+      "chunk": 74,
+      "tokens": 121241600,
+      "step": 3700,
+      "val_bpb": 1.3685188182614387,
+      "holdout_ce": 4.08468571305275,
+      "probe_mean": 4.089877342184384
+    },
+    {
+      "chunk": 76,
+      "tokens": 124518400,
+      "step": 3800,
+      "val_bpb": 1.3710422422122355,
+      "holdout_ce": 4.102674126625061,
+      "probe_mean": 4.101296111941338
+    },
+    {
+      "chunk": 78,
+      "tokens": 127795200,
+      "step": 3900,
+      "val_bpb": 1.377369532100226,
+      "holdout_ce": 4.11814346909523,
+      "probe_mean": 4.128092656532924
+    },
+    {
+      "chunk": 80,
+      "tokens": 131072000,
+      "step": 4000,
+      "val_bpb": 1.382494453962955,
+      "holdout_ce": 4.1451002061367035,
+      "probe_mean": 4.1365551352500916
+    },
+    {
+      "chunk": 82,
+      "tokens": 134348800,
+      "step": 4100,
+      "val_bpb": 1.3927517084262355,
+      "holdout_ce": 4.183490663766861,
+      "probe_mean": 4.187912121415138
+    },
+    {
+      "chunk": 84,
+      "tokens": 137625600,
+      "step": 4200,
+      "val_bpb": 1.4043698974851628,
+      "holdout_ce": 4.216695189476013,
+      "probe_mean": 4.210713138182958
+    },
+    {
+      "chunk": 86,
+      "tokens": 140902400,
+      "step": 4300,
+      "val_bpb": 1.3783997697764765,
+      "holdout_ce": 4.1338697373867035,
+      "probe_mean": 4.262909884254138
+    },
+    {
+      "chunk": 88,
+      "tokens": 144179200,
+      "step": 4400,
+      "val_bpb": 1.3605846656375213,
+      "holdout_ce": 4.060870349407196,
+      "probe_mean": 4.110342462857564
+    },
+    {
+      "chunk": 90,
+      "tokens": 147456000,
+      "step": 4500,
+      "val_bpb": 1.3450293237811077,
+      "holdout_ce": 4.0164682269096375,
+      "probe_mean": 4.044989794492722
+    },
+    {
+      "chunk": 92,
+      "tokens": 150732800,
+      "step": 4600,
+      "val_bpb": 1.3431848530544146,
+      "holdout_ce": 4.001251250505447,
+      "probe_mean": 4.008611684044202
+    },
+    {
+      "chunk": 94,
+      "tokens": 154009600,
+      "step": 4700,
+      "val_bpb": 1.3419192422182558,
+      "holdout_ce": 3.9885682463645935,
+      "probe_mean": 4.008106857538223
+    },
+    {
+      "chunk": 96,
+      "tokens": 157286400,
+      "step": 4800,
+      "val_bpb": 1.3406243367161343,
+      "holdout_ce": 3.988239675760269,
+      "probe_mean": 3.9969950218995414
+    },
+    {
+      "chunk": 98,
+      "tokens": 160563200,
+      "step": 4900,
+      "val_bpb": 1.3416436517774997,
+      "holdout_ce": 3.9967190325260162,
+      "probe_mean": 4.002802193164825
+    },
+    {
+      "chunk": 100,
+      "tokens": 163840000,
+      "step": 5000,
+      "val_bpb": 1.3455638933873697,
+      "holdout_ce": 4.014692813158035,
+      "probe_mean": 4.011848658323288
+    },
+    {
+      "chunk": 102,
+      "tokens": 167116800,
+      "step": 5100,
+      "val_bpb": 1.348882259251248,
+      "holdout_ce": 4.021302103996277,
+      "probe_mean": 4.029452403386434
+    },
+    {
+      "chunk": 104,
+      "tokens": 170393600,
+      "step": 5200,
+      "val_bpb": 1.3332654547089493,
+      "holdout_ce": 3.977417141199112,
+      "probe_mean": 4.0323443959156675
+    },
+    {
+      "chunk": 106,
+      "tokens": 173670400,
+      "step": 5300,
+      "val_bpb": 1.3366292427844175,
+      "holdout_ce": 3.974822700023651,
+      "probe_mean": 3.98061673839887
+    },
+    {
+      "chunk": 108,
+      "tokens": 176947200,
+      "step": 5400,
+      "val_bpb": 1.3318792984507648,
+      "holdout_ce": 3.9660834670066833,
+      "probe_mean": 3.9787378311157227
+    },
+    {
+      "chunk": 110,
+      "tokens": 180224000,
+      "step": 5500,
+      "val_bpb": 1.3368306484502064,
+      "holdout_ce": 3.9652033150196075,
+      "probe_mean": 3.961389198899269
+    },
+    {
+      "chunk": 112,
+      "tokens": 183500800,
+      "step": 5600,
+      "val_bpb": 1.3367401813361324,
+      "holdout_ce": 3.971961796283722,
+      "probe_mean": 3.966194505492846
+    },
+    {
+      "chunk": 114,
+      "tokens": 186777600,
+      "step": 5700,
+      "val_bpb": 1.3292220361879052,
+      "holdout_ce": 3.9734945595264435,
+      "probe_mean": 3.970143680771192
+    },
+    {
+      "chunk": 116,
+      "tokens": 190054400,
+      "step": 5800,
+      "val_bpb": 1.3250182032493165,
+      "holdout_ce": 3.9588207006454468,
+      "probe_mean": 3.97193351884683
+    },
+    {
+      "chunk": 118,
+      "tokens": 193331200,
+      "step": 5900,
+      "val_bpb": 1.3309208655997369,
+      "holdout_ce": 3.9817803502082825,
+      "probe_mean": 3.98174179593722
+    },
+    {
+      "chunk": 120,
+      "tokens": 196608000,
+      "step": 6000,
+      "val_bpb": 1.3346574350717935,
+      "holdout_ce": 4.005328297615051,
+      "probe_mean": 4.000715603431066
+    },
+    {
+      "chunk": 122,
+      "tokens": 199884800,
+      "step": 6100,
+      "val_bpb": 1.3325056315664898,
+      "holdout_ce": 4.013460487127304,
+      "probe_mean": 4.017303571105003
+    },
+    {
+      "chunk": 124,
+      "tokens": 203161600,
+      "step": 6200,
+      "val_bpb": 1.316707399391828,
+      "holdout_ce": 3.9296471178531647,
+      "probe_mean": 3.9683464616537094
+    },
+    {
+      "chunk": 126,
+      "tokens": 206438400,
+      "step": 6300,
+      "val_bpb": 1.315484085873895,
+      "holdout_ce": 3.912344217300415,
+      "probe_mean": 3.9418392181396484
+    },
+    {
+      "chunk": 128,
+      "tokens": 209715200,
+      "step": 6400,
+      "val_bpb": 1.3134743827826132,
+      "holdout_ce": 3.900735765695572,
+      "probe_mean": 3.9400835732618966
+    },
+    {
+      "chunk": 130,
+      "tokens": 212992000,
+      "step": 6500,
+      "val_bpb": 1.3094056361785145,
+      "holdout_ce": 3.9070780873298645,
+      "probe_mean": 3.9494852473338447
+    },
+    {
+      "chunk": 132,
+      "tokens": 216268800,
+      "step": 6600,
+      "val_bpb": 1.30847862640379,
+      "holdout_ce": 3.901063323020935,
+      "probe_mean": 3.920470987757047
+    },
+    {
+      "chunk": 134,
+      "tokens": 219545600,
+      "step": 6700,
+      "val_bpb": 1.3051448682633109,
+      "holdout_ce": 3.9047800600528717,
+      "probe_mean": 3.9204688419898353
+    },
+    {
+      "chunk": 136,
+      "tokens": 222822400,
+      "step": 6800,
+      "val_bpb": 1.3071406979890081,
+      "holdout_ce": 3.8972818851470947,
+      "probe_mean": 3.9237670600414276
+    },
+    {
+      "chunk": 138,
+      "tokens": 226099200,
+      "step": 6900,
+      "val_bpb": 1.3049826833953466,
+      "holdout_ce": 3.894915461540222,
+      "probe_mean": 3.9270521104335785
+    },
+    {
+      "chunk": 140,
+      "tokens": 229376000,
+      "step": 7000,
+      "val_bpb": 1.3072704923214233,
+      "holdout_ce": 3.9016060531139374,
+      "probe_mean": 3.9020513395468392
+    },
+    {
+      "chunk": 142,
+      "tokens": 232652800,
+      "step": 7100,
+      "val_bpb": 1.3041047334789762,
+      "holdout_ce": 3.883540153503418,
+      "probe_mean": 3.9011734078327813
+    },
+    {
+      "chunk": 144,
+      "tokens": 235929600,
+      "step": 7200,
+      "val_bpb": 1.3046956866100827,
+      "holdout_ce": 3.887017846107483,
+      "probe_mean": 3.902146021525065
+    },
+    {
+      "chunk": 146,
+      "tokens": 239206400,
+      "step": 7300,
+      "val_bpb": 1.301567165274006,
+      "holdout_ce": 3.8958937227725983,
+      "probe_mean": 3.915544038017591
+    },
+    {
+      "chunk": 148,
+      "tokens": 242483200,
+      "step": 7400,
+      "val_bpb": 1.3069015033650788,
+      "holdout_ce": 3.933950364589691,
+      "probe_mean": 3.917633891105652
+    },
+    {
+      "chunk": 150,
+      "tokens": 245760000,
+      "step": 7500,
+      "val_bpb": 1.311021728475646,
+      "holdout_ce": 3.9565666019916534,
+      "probe_mean": 3.9372326682011285
+    },
+    {
+      "chunk": 152,
+      "tokens": 249036800,
+      "step": 7600,
+      "val_bpb": 1.3153858210383,
+      "holdout_ce": 3.9733151495456696,
+      "probe_mean": 3.9578512609004974
+    },
+    {
+      "chunk": 154,
+      "tokens": 252313600,
+      "step": 7700,
+      "val_bpb": 1.3007700852759911,
+      "holdout_ce": 3.943724602460861,
+      "probe_mean": 3.9404332488775253
+    },
+    {
+      "chunk": 156,
+      "tokens": 255590400,
+      "step": 7800,
+      "val_bpb": 1.2940623517141858,
+      "holdout_ce": 3.892031878232956,
+      "probe_mean": 3.9439953366915383
+    },
+    {
+      "chunk": 158,
+      "tokens": 258867200,
+      "step": 7900,
+      "val_bpb": 1.3008727520511545,
+      "holdout_ce": 3.92166605591774,
+      "probe_mean": 3.9175640791654587
+    },
+    {
+      "chunk": 160,
+      "tokens": 262144000,
+      "step": 8000,
+      "val_bpb": 1.3071647490258584,
+      "holdout_ce": 3.940489798784256,
+      "probe_mean": 3.9393809934457145
+    },
+    {
+      "chunk": 162,
+      "tokens": 265420800,
+      "step": 8100,
+      "val_bpb": 1.2954134859476727,
+      "holdout_ce": 3.887553721666336,
+      "probe_mean": 3.9176387240489325
+    },
+    {
+      "chunk": 164,
+      "tokens": 268697600,
+      "step": 8200,
+      "val_bpb": 1.2897252996374517,
+      "holdout_ce": 3.861959010362625,
+      "probe_mean": 3.893158808350563
+    },
+    {
+      "chunk": 166,
+      "tokens": 271974400,
+      "step": 8300,
+      "val_bpb": 1.2898260605179008,
+      "holdout_ce": 3.862369030714035,
+      "probe_mean": 3.889239619175593
+    },
+    {
+      "chunk": 168,
+      "tokens": 275251200,
+      "step": 8400,
+      "val_bpb": 1.28754205370666,
+      "holdout_ce": 3.8514227271080017,
+      "probe_mean": 3.882424980401993
+    },
+    {
+      "chunk": 170,
+      "tokens": 278528000,
+      "step": 8500,
+      "val_bpb": 1.2874461688208096,
+      "holdout_ce": 3.849216938018799,
+      "probe_mean": 3.8853131781021752
+    },
+    {
+      "chunk": 172,
+      "tokens": 281804800,
+      "step": 8600,
+      "val_bpb": 1.287854639788975,
+      "holdout_ce": 3.837298333644867,
+      "probe_mean": 3.8722077508767447
+    },
+    {
+      "chunk": 174,
+      "tokens": 285081600,
+      "step": 8700,
+      "val_bpb": 1.285991158488102,
+      "holdout_ce": 3.838589161634445,
+      "probe_mean": 3.8603327572345734
+    },
+    {
+      "chunk": 176,
+      "tokens": 288358400,
+      "step": 8800,
+      "val_bpb": 1.2833464635208454,
+      "holdout_ce": 3.8354060351848602,
+      "probe_mean": 3.8574888507525125
+    },
+    {
+      "chunk": 178,
+      "tokens": 291635200,
+      "step": 8900,
+      "val_bpb": 1.285244357347091,
+      "holdout_ce": 3.8368388414382935,
+      "probe_mean": 3.8661844780047736
+    },
+    {
+      "chunk": 180,
+      "tokens": 294912000,
+      "step": 9000,
+      "val_bpb": 1.2856066611600474,
+      "holdout_ce": 3.8381898403167725,
+      "probe_mean": 3.848809386293093
+    },
+    {
+      "chunk": 182,
+      "tokens": 298188800,
+      "step": 9100,
+      "val_bpb": 1.2874414959926523,
+      "holdout_ce": 3.860205113887787,
+      "probe_mean": 3.853651096423467
+    },
+    {
+      "chunk": 184,
+      "tokens": 301465600,
+      "step": 9200,
+      "val_bpb": 1.2802937329420838,
+      "holdout_ce": 3.835131138563156,
+      "probe_mean": 3.861342986424764
+    },
+    {
+      "chunk": 186,
+      "tokens": 304742400,
+      "step": 9300,
+      "val_bpb": 1.281590379870848,
+      "holdout_ce": 3.8272033035755157,
+      "probe_mean": 3.840713491042455
+    },
+    {
+      "chunk": 188,
+      "tokens": 308019200,
+      "step": 9400,
+      "val_bpb": 1.2885721075656535,
+      "holdout_ce": 3.847038209438324,
+      "probe_mean": 3.8421136140823364
+    },
+    {
+      "chunk": 190,
+      "tokens": 311296000,
+      "step": 9500,
+      "val_bpb": 1.2905797693179268,
+      "holdout_ce": 3.846036583185196,
+      "probe_mean": 3.8443856040636697
+    },
+    {
+      "chunk": 192,
+      "tokens": 314572800,
+      "step": 9600,
+      "val_bpb": 1.295286980976693,
+      "holdout_ce": 3.859390676021576,
+      "probe_mean": 3.850312421719233
+    },
+    {
+      "chunk": 194,
+      "tokens": 317849600,
+      "step": 9700,
+      "val_bpb": 1.2912058799180253,
+      "holdout_ce": 3.8581913113594055,
+      "probe_mean": 3.8646662880976996
+    },
+    {
+      "chunk": 196,
+      "tokens": 321126400,
+      "step": 9800,
+      "val_bpb": 1.2930070665180617,
+      "holdout_ce": 3.8338572680950165,
+      "probe_mean": 3.853100170691808
+    },
+    {
+      "chunk": 198,
+      "tokens": 324403200,
+      "step": 9900,
+      "val_bpb": 1.2856980280112198,
+      "holdout_ce": 3.8133193254470825,
+      "probe_mean": 3.864377588033676
+    },
+    {
+      "chunk": 200,
+      "tokens": 327680000,
+      "step": 10000,
+      "val_bpb": 1.2907228468657868,
+      "holdout_ce": 3.812680244445801,
+      "probe_mean": 3.8573070963223777
+    },
+    {
+      "chunk": 202,
+      "tokens": 330956800,
+      "step": 10100,
+      "val_bpb": 1.2845902678256043,
+      "holdout_ce": 3.8151499330997467,
+      "probe_mean": 3.8444875329732895
+    },
+    {
+      "chunk": 204,
+      "tokens": 334233600,
+      "step": 10200,
+      "val_bpb": 1.2838763119259877,
+      "holdout_ce": 3.810695141553879,
+      "probe_mean": 3.8722629100084305
+    },
+    {
+      "chunk": 206,
+      "tokens": 337510400,
+      "step": 10300,
+      "val_bpb": 1.279136845175967,
+      "holdout_ce": 3.801792621612549,
+      "probe_mean": 3.829719295104345
+    },
+    {
+      "chunk": 208,
+      "tokens": 340787200,
+      "step": 10400,
+      "val_bpb": 1.2806172996868388,
+      "holdout_ce": 3.8107476234436035,
+      "probe_mean": 3.8331799854834876
+    },
+    {
+      "chunk": 210,
+      "tokens": 344064000,
+      "step": 10500,
+      "val_bpb": 1.280904789876318,
+      "holdout_ce": 3.8213331401348114,
+      "probe_mean": 3.8296995908021927
+    },
+    {
+      "chunk": 212,
+      "tokens": 347340800,
+      "step": 10600,
+      "val_bpb": 1.2803395324627798,
+      "holdout_ce": 3.815830260515213,
+      "probe_mean": 3.830247307817141
+    },
+    {
+      "chunk": 214,
+      "tokens": 350617600,
+      "step": 10700,
+      "val_bpb": 1.2818748612620727,
+      "holdout_ce": 3.8244904577732086,
+      "probe_mean": 3.842553292711576
+    },
+    {
+      "chunk": 216,
+      "tokens": 353894400,
+      "step": 10800,
+      "val_bpb": 1.2851966422570886,
+      "holdout_ce": 3.838908702135086,
+      "probe_mean": 3.8290434877077737
+    },
+    {
+      "chunk": 218,
+      "tokens": 357171200,
+      "step": 10900,
+      "val_bpb": 1.2790129910433208,
+      "holdout_ce": 3.8193755447864532,
+      "probe_mean": 3.834120064973831
+    },
+    {
+      "chunk": 220,
+      "tokens": 360448000,
+      "step": 11000,
+      "val_bpb": 1.272720152379073,
+      "holdout_ce": 3.8134076595306396,
+      "probe_mean": 3.8196039299170175
+    },
+    {
+      "chunk": 222,
+      "tokens": 363724800,
+      "step": 11100,
+      "val_bpb": 1.2724035706900727,
+      "holdout_ce": 3.8126754760742188,
+      "probe_mean": 3.8165288219849267
+    },
+    {
+      "chunk": 224,
+      "tokens": 367001600,
+      "step": 11200,
+      "val_bpb": 1.2792376350801935,
+      "holdout_ce": 3.8327910602092743,
+      "probe_mean": 3.827178160349528
+    },
+    {
+      "chunk": 226,
+      "tokens": 370278400,
+      "step": 11300,
+      "val_bpb": 1.271999085654,
+      "holdout_ce": 3.809174060821533,
+      "probe_mean": 3.8213475247224173
+    },
+    {
+      "chunk": 228,
+      "tokens": 373555200,
+      "step": 11400,
+      "val_bpb": 1.271930463769696,
+      "holdout_ce": 3.7983604669570923,
+      "probe_mean": 3.809887930750847
+    },
+    {
+      "chunk": 230,
+      "tokens": 376832000,
+      "step": 11500,
+      "val_bpb": 1.2754815132567796,
+      "holdout_ce": 3.820531189441681,
+      "probe_mean": 3.8082374980052314
+    },
+    {
+      "chunk": 232,
+      "tokens": 380108800,
+      "step": 11600,
+      "val_bpb": 1.2779477506915577,
+      "holdout_ce": 3.822792500257492,
+      "probe_mean": 3.819490820169449
+    },
+    {
+      "chunk": 234,
+      "tokens": 383385600,
+      "step": 11700,
+      "val_bpb": 1.2814043374578823,
+      "holdout_ce": 3.8243304193019867,
+      "probe_mean": 3.819654698173205
+    },
+    {
+      "chunk": 236,
+      "tokens": 386662400,
+      "step": 11800,
+      "val_bpb": 1.277111082261205,
+      "holdout_ce": 3.8106603026390076,
+      "probe_mean": 3.8234012921651206
+    },
+    {
+      "chunk": 238,
+      "tokens": 389939200,
+      "step": 11900,
+      "val_bpb": 1.2763757164884793,
+      "holdout_ce": 3.816213458776474,
+      "probe_mean": 3.8144535273313522
+    },
+    {
+      "chunk": 240,
+      "tokens": 393216000,
+      "step": 12000,
+      "val_bpb": 1.2807566912149724,
+      "holdout_ce": 3.823253631591797,
+      "probe_mean": 3.8122777889172235
+    },
+    {
+      "chunk": 242,
+      "tokens": 396492800,
+      "step": 12100,
+      "val_bpb": 1.2842849957351874,
+      "holdout_ce": 3.822072446346283,
+      "probe_mean": 3.825390338897705
+    },
+    {
+      "chunk": 244,
+      "tokens": 399769600,
+      "step": 12200,
+      "val_bpb": 1.280139336121048,
+      "holdout_ce": 3.806670308113098,
+      "probe_mean": 3.81534414490064
+    },
+    {
+      "chunk": 246,
+      "tokens": 403046400,
+      "step": 12300,
+      "val_bpb": 1.2814614175533838,
+      "holdout_ce": 3.8118858337402344,
+      "probe_mean": 3.8041601230700812
+    },
+    {
+      "chunk": 248,
+      "tokens": 406323200,
+      "step": 12400,
+      "val_bpb": 1.2822995661963825,
+      "holdout_ce": 3.8127394020557404,
+      "probe_mean": 3.8173541078964868
+    },
+    {
+      "chunk": 250,
+      "tokens": 409600000,
+      "step": 12500,
+      "val_bpb": 1.2721804262150311,
+      "holdout_ce": 3.7893562018871307,
+      "probe_mean": 3.8052491595347724
+    },
+    {
+      "chunk": 252,
+      "tokens": 412876800,
+      "step": 12600,
+      "val_bpb": 1.283140501122009,
+      "holdout_ce": 3.831862151622772,
+      "probe_mean": 3.7984590282042823
+    },
+    {
+      "chunk": 254,
+      "tokens": 416153600,
+      "step": 12700,
+      "val_bpb": 1.269897067601485,
+      "holdout_ce": 3.780401825904846,
+      "probe_mean": 3.7940275967121124
+    },
+    {
+      "chunk": 256,
+      "tokens": 419430400,
+      "step": 12800,
+      "val_bpb": 1.270386389138821,
+      "holdout_ce": 3.7893999218940735,
+      "probe_mean": 3.7902709444363913
+    },
+    {
+      "chunk": 258,
+      "tokens": 422707200,
+      "step": 12900,
+      "val_bpb": 1.267106905462031,
+      "holdout_ce": 3.77456995844841,
+      "probe_mean": 3.7911163667837777
+    },
+    {
+      "chunk": 260,
+      "tokens": 425984000,
+      "step": 13000,
+      "val_bpb": 1.2786184224645174,
+      "holdout_ce": 3.811915248632431,
+      "probe_mean": 3.7899372527996698
+    },
+    {
+      "chunk": 262,
+      "tokens": 429260800,
+      "step": 13100,
+      "val_bpb": 1.2664208414124707,
+      "holdout_ce": 3.774150311946869,
+      "probe_mean": 3.790833756327629
+    },
+    {
+      "chunk": 264,
+      "tokens": 432537600,
+      "step": 13200,
+      "val_bpb": 1.266816019490599,
+      "holdout_ce": 3.7748442590236664,
+      "probe_mean": 3.7856267541646957
+    },
+    {
+      "chunk": 266,
+      "tokens": 435814400,
+      "step": 13300,
+      "val_bpb": 1.2694466282512369,
+      "holdout_ce": 3.790654718875885,
+      "probe_mean": 3.795714790622393
+    },
+    {
+      "chunk": 268,
+      "tokens": 439091200,
+      "step": 13400,
+      "val_bpb": 1.2762139089296207,
+      "holdout_ce": 3.8156817853450775,
+      "probe_mean": 3.821388006210327
+    },
+    {
+      "chunk": 270,
+      "tokens": 442368000,
+      "step": 13500,
+      "val_bpb": 1.281125593099985,
+      "holdout_ce": 3.833445131778717,
+      "probe_mean": 3.83746604124705
+    },
+    {
+      "chunk": 272,
+      "tokens": 445644800,
+      "step": 13600,
+      "val_bpb": 1.2756053480402407,
+      "holdout_ce": 3.815050929784775,
+      "probe_mean": 3.836616739630699
+    }
+  ],
+  "actions_executed": {
+    "semantic_0_lo": 55,
+    "semantic_1_lo": 15,
+    "semantic_2_lo": 7,
+    "very_short": 9,
+    "semantic_5_lo": 10,
+    "semantic_8_lo": 9,
+    "semantic_6_lo": 11,
+    "semantic_0_hi": 5,
+    "math_heavy": 47,
+    "very_long": 35,
+    "semantic_4_lo": 3,
+    "semantic_6_hi": 2,
+    "semantic_2_hi": 1,
+    "semantic_8_hi": 1,
+    "semantic_4_hi": 1,
+    "highly_repetitive": 7,
+    "semantic_5_hi": 1,
+    "list_table_heavy": 17,
+    "semantic_3_hi": 1,
+    "semantic_7_hi": 3,
+    "semantic_1_hi": 1,
+    "semantic_7_lo": 1,
+    "code_heavy": 29,
+    "semantic_3_lo": 1
+  },
+  "action_sequence": [
+    "semantic_0_lo",
+    "semantic_1_lo",
+    "semantic_2_lo",
+    "very_short",
+    "semantic_5_lo",
+    "semantic_8_lo",
+    "semantic_6_lo",
+    "semantic_0_hi",
+    "math_heavy",
+    "very_long",
+    "semantic_4_lo",
+    "semantic_6_hi",
+    "semantic_2_hi",
+    "semantic_8_hi",
+    "semantic_4_hi",
+    "highly_repetitive",
+    "semantic_5_hi",
+    "list_table_heavy",
+    "semantic_3_hi",
+    "semantic_7_hi",
+    "semantic_1_hi",
+    "semantic_7_lo",
+    "code_heavy",
+    "semantic_3_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "very_short",
+    "very_short",
+    "very_short",
+    "very_short",
+    "very_short",
+    "very_short",
+    "very_short",
+    "very_short",
+    "semantic_0_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_5_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_6_lo",
+    "semantic_2_lo",
+    "semantic_2_lo",
+    "semantic_2_lo",
+    "semantic_2_lo",
+    "semantic_2_lo",
+    "semantic_0_lo",
+    "highly_repetitive",
+    "semantic_0_lo",
+    "math_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "list_table_heavy",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_1_lo",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "semantic_6_lo",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "semantic_7_hi",
+    "semantic_0_lo",
+    "semantic_5_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_4_lo",
+    "semantic_0_lo",
+    "very_long",
+    "very_long",
+    "very_long",
+    "very_long",
+    "very_long",
+    "very_long",
+    "semantic_0_hi",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "very_long",
+    "semantic_0_lo",
+    "math_heavy",
+    "semantic_8_lo",
+    "math_heavy",
+    "semantic_8_lo",
+    "semantic_8_lo",
+    "semantic_8_lo",
+    "semantic_8_lo",
+    "semantic_8_lo",
+    "semantic_8_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "very_long",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "very_long",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "very_long",
+    "code_heavy",
+    "code_heavy",
+    "very_long",
+    "semantic_6_lo",
+    "very_long",
+    "very_long",
+    "list_table_heavy",
+    "code_heavy",
+    "very_long",
+    "very_long",
+    "very_long",
+    "very_long",
+    "math_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "semantic_8_lo",
+    "semantic_0_lo",
+    "code_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "semantic_7_hi",
+    "highly_repetitive",
+    "highly_repetitive",
+    "highly_repetitive",
+    "code_heavy",
+    "highly_repetitive",
+    "highly_repetitive",
+    "code_heavy",
+    "semantic_0_hi",
+    "semantic_0_hi",
+    "math_heavy",
+    "code_heavy",
+    "code_heavy",
+    "very_long",
+    "semantic_0_hi",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "code_heavy",
+    "very_long",
+    "math_heavy",
+    "math_heavy",
+    "very_long",
+    "math_heavy",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "very_long",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "very_long",
+    "semantic_6_hi",
+    "math_heavy",
+    "math_heavy",
+    "semantic_0_lo",
+    "math_heavy",
+    "very_long",
+    "very_long",
+    "very_long",
+    "semantic_4_lo",
+    "very_long",
+    "very_long",
+    "very_long",
+    "semantic_0_lo",
+    "very_long",
+    "very_long",
+    "very_long",
+    "semantic_2_lo",
+    "very_long",
+    "very_long",
+    "very_long",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_0_lo",
+    "semantic_5_lo",
+    "semantic_0_lo"
+  ],
+  "switch_chunk": null,
+  "resumed": false,
+  "target": {
+    "holdout_ce": 3.4682928025722504,
+    "probe_mean": 3.60605089366436,
+    "target_probe_losses": [
+      3.8972874879837036,
+      3.2013235092163086,
+      3.4915590286254883,
+      3.2990527153015137,
+      3.7662304639816284,
+      3.795361280441284,
+      3.6784329414367676,
+      3.431726098060608,
+      3.6048402786254883,
+      3.595418691635132,
+      3.3598101139068604,
+      3.5232170820236206,
+      3.5029460191726685,
+      3.685872435569763,
+      3.8202033042907715,
+      3.5117794275283813,
+      3.6335561275482178,
+      3.644897699356079,
+      3.4570789337158203,
+      3.493747353553772,
+      3.5138367414474487,
+      3.7970865964889526,
+      3.9056931734085083,
+      3.9342639446258545
+    ],
+    "tokens": 1002700800,
+    "val_bpb": 1.1641941188344318
+  },
+  "provenance": {
+    "seed": 10,
+    "config_hash": "aebe0126343d5eb7",
+    "git_commit": "92d63d4e8bb4df75c3b71618f31ddde2378b2bcd",
+    "tokens_manifest_hash": "312ddc758f32b5bdd11030d1df9cba70c7bc1694a6ad9de082f63d69aa91dad6",
+    "actions_manifest_hash": "0167b185dea129e0",
+    "target_config_hash": "668dd3291a770627",
+    "simulator_version": "lowrank-v1",
+    "environment_version": "lm-v1"
+  },
+  "overhead": {
+    "probe_calls": 260,
+    "probe_wall_seconds": 339.58623324593646,
+    "simulator_fit_wall_seconds": 2.5639359650667757,
+    "simulator_predict_calls": 5616,
+    "wall_seconds": 11081.885062864007
+  },
+  "notes": []
+}
