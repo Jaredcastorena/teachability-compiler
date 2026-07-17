@@ -9,7 +9,7 @@ here by hash.
 
 | file | sha256 | location | status |
 |---|---|---|---|
-| reference s* (`target.pt`, 1B-token proportional shuffle, seed 0) | `64dcae57374bdec8ae18faa97359c6e250e991bfb603b9270a382b0ad2d2bb98` | local: `data/checkpoints/reference/target.pt`; HF upload pending write token | KEEP |
+| reference s* (`target.pt`, 1B-token proportional shuffle, seed 0) | `64dcae57374bdec8ae18faa97359c6e250e991bfb603b9270a382b0ad2d2bb98` | hf.co/Jared1728/teachability-compiler-checkpoints `reference_s_star/target.pt` (LFS sha256 verified identical) + local copy | ARCHIVED |
 
 ## Retention policy
 
@@ -17,6 +17,6 @@ here by hash.
   run completes (uniform, edu_heavy, reference already cleaned).
 - Race harness keeps exactly one atomic checkpoint per active run.
 - Candidates for archive on completion: final models of winning policies.
-- Planned offsite: private Hugging Face repo
-  (`Jared1728/teachability-compiler-checkpoints`) — blocked on a write
-  token; the stored token is read-only.
+- Offsite archive live: private Hugging Face repo
+  (`Jared1728/teachability-compiler-checkpoints`); upload-one, verify
+  hash, then local copy becomes evictable.
