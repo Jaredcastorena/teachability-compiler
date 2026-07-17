@@ -7,6 +7,8 @@ records the hidden validation channel only in the trajectory recorder.
 from __future__ import annotations
 
 import argparse
+import ctypes
+import gc
 import hashlib
 import json
 import subprocess
@@ -20,6 +22,43 @@ import numpy as np
 THRESHOLD_FACTORS: tuple[float, ...] = (1.10, 1.05, 1.02, 1.01, 1.005, 1.0)
 SIMULATOR_VERSION = "lowrank-v1"
 ENVIRONMENT_VERSION = "lm-v1"
+
+_MALLOC_TRIM_CHECKED = False
+_MALLOC_TRIM: Any | None = None
+_MALLOC_TRIM_LIBC: Any | None = None
+
+
+def _return_freed_memory_to_os() -> None:
+    """Return freed CPU heap pages to the OS when the allocator supports it.
+
+    Leak fix. Checkpointing deep-copies the model + optimizer state to CPU
+    (~4.7 GB via ``oracle.snapshot()``), refits build transient CPU tensors, and
+    a resumed run loads a multi-GB checkpoint. Python frees these by reference
+    counting, but glibc keeps the pages in its malloc arenas rather than
+    returning them to the kernel, so resident memory climbs and is never
+    released. A cyclic GC pass followed by malloc_trim(0) hands the freed pages
+    back so RSS tracks the live working set. No-op where glibc/malloc_trim is
+    unavailable (e.g. macOS/Windows).
+    """
+    global _MALLOC_TRIM_CHECKED, _MALLOC_TRIM, _MALLOC_TRIM_LIBC
+
+    gc.collect()
+    if not _MALLOC_TRIM_CHECKED:
+        _MALLOC_TRIM_CHECKED = True
+        try:
+            libc = ctypes.CDLL("libc.so.6", use_errno=True)
+            trim = libc.malloc_trim
+        except (OSError, AttributeError):
+            _MALLOC_TRIM_LIBC = None
+            _MALLOC_TRIM = None
+        else:
+            trim.argtypes = [ctypes.c_size_t]
+            trim.restype = ctypes.c_int
+            _MALLOC_TRIM_LIBC = libc
+            _MALLOC_TRIM = trim
+
+    if _MALLOC_TRIM is not None:
+        _MALLOC_TRIM(0)
 
 
 def weights_for_edu_heavy(manifest: dict[str, Any], action_names: list[str]) -> tuple[float, ...]:
@@ -288,6 +327,11 @@ def _fit_simulator(
     overhead["simulator_fit_wall_seconds"] = float(overhead["simulator_fit_wall_seconds"]) + (
         time.perf_counter() - start
     )
+    # Leak fix: fit() allocates transient CPU training tensors and an AdamW
+    # optimizer that are freed on return; the fitted simulator keeps only its
+    # small learned modules/statistics. Trim so the refit churn does not leave
+    # glibc arenas resident across the run.
+    _return_freed_memory_to_os()
     return simulator
 
 
@@ -388,6 +432,13 @@ def _save_checkpoint(
     tmp = target.with_suffix(".tmp")
     torch.save(payload, tmp)
     tmp.replace(target)
+    # Leak fix: the snapshot is a multi-GB CPU deep copy of the model and
+    # optimizer state. Drop the payload and snapshot references now and trim the
+    # glibc arenas so a checkpoint chunk does not leave several GB resident until
+    # the next apply_action() reclaims it.
+    del payload
+    del snapshot
+    _return_freed_memory_to_os()
 
 
 def _initial_policy_state(num_actions: int) -> dict[str, Any]:
@@ -567,6 +618,12 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
                 "the simulator refits on the full pre+post-resume evidence."
             )
         resumed = True
+        # Leak fix: the loaded checkpoint holds multi-GB CPU model/optimizer
+        # tensors. Everything needed has been copied out (oracle.restore, list(),
+        # dict()), so drop it now instead of pinning it in this long-lived
+        # run_race frame for the entire run, and trim the freed arenas.
+        del checkpoint
+        _return_freed_memory_to_os()
     else:
         trajectory = []
         chunk_index = 0

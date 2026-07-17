@@ -8,7 +8,9 @@ those methods. They are only for final hidden validation/reporting.
 from __future__ import annotations
 
 import copy
+import ctypes
 import dataclasses
+import gc
 import hashlib
 import json
 import math
@@ -32,6 +34,45 @@ _VOCAB_SIZE = 32768
 _PROBE_EMA_ALPHA = 0.25
 _RECENCY_DECAY = 0.9
 _LAYER_RE = re.compile(r"(?:^|\.)(?:h|blocks|block|layers)\.(\d+)(?:\.|$)")
+
+_MALLOC_TRIM_CHECKED = False
+_MALLOC_TRIM: Any | None = None
+_MALLOC_TRIM_LIBC: Any | None = None
+
+
+def _return_freed_memory_to_os() -> None:
+    """Return CPU heap memory freed this chunk back to the operating system.
+
+    Leak fix. Every chunk ``apply_action`` builds a full fp32 CPU parameter
+    snapshot (``_cpu_param_snapshot``, ~1.5 GB), and on checkpoint chunks
+    ``snapshot()`` deep-copies the model + optimizer state (~4.7 GB). Python
+    frees these promptly by reference counting, but glibc keeps the pages in its
+    malloc arenas instead of returning them to the kernel, so resident memory
+    ratchets up tens-to-hundreds of MB per chunk and is never released,
+    eventually exhausting RAM + swap. A cyclic GC pass (to break any grad_fn
+    reference cycles) followed by malloc_trim(0) hands the freed pages back so
+    RSS tracks the live working set. No-op where glibc/malloc_trim is
+    unavailable (e.g. macOS/Windows).
+    """
+    global _MALLOC_TRIM_CHECKED, _MALLOC_TRIM, _MALLOC_TRIM_LIBC
+
+    gc.collect()
+    if not _MALLOC_TRIM_CHECKED:
+        _MALLOC_TRIM_CHECKED = True
+        try:
+            libc = ctypes.CDLL("libc.so.6", use_errno=True)
+            trim = libc.malloc_trim
+        except (OSError, AttributeError):
+            _MALLOC_TRIM_LIBC = None
+            _MALLOC_TRIM = None
+        else:
+            trim.argtypes = [ctypes.c_size_t]
+            trim.restype = ctypes.c_int
+            _MALLOC_TRIM_LIBC = libc
+            _MALLOC_TRIM = trim
+
+    if _MALLOC_TRIM is not None:
+        _MALLOC_TRIM(0)
 
 
 def _load_manifest(path: Path) -> dict[str, Any]:
@@ -471,6 +512,10 @@ class NanochatLearnerOracle:
                 loss.backward()
                 if micro_idx == self.grad_accum - 1:
                     last_grad_norm = self._grad_norm()
+                # Leak guard: free each micro-batch's loss (and its now-consumed
+                # autograd graph) plus its input tensors before the next iteration
+                # allocates new ones, so no graph is pinned across micro-batches.
+                del loss, idx, targets
             self.optimizer.step()
 
             self.step += 1
@@ -482,6 +527,11 @@ class NanochatLearnerOracle:
 
         param_delta = self._param_delta_sketch(params_before)
         param_delta_norm = float(np.linalg.norm(param_delta))
+        # Leak fix: release the ~1.5 GB fp32 CPU parameter snapshot the moment the
+        # delta sketch is computed, so it is not pinned across the post-action
+        # probes and observation construction below.
+        del params_before
+
         probe_after = self.probe_losses()
         probe_delta = probe_after - probe_before
 
@@ -497,7 +547,7 @@ class NanochatLearnerOracle:
         activation_delta = state_after.activation_sketch - activation_before
         compute_cost = int(optimizer_steps * tokens_per_step)
 
-        return _construct_transition_observation(
+        observation = _construct_transition_observation(
             {
                 "state_before": state_before,
                 "action": action,
@@ -509,6 +559,13 @@ class NanochatLearnerOracle:
                 "seed_metadata": {"seed": int(data_seed), "step": int(state_before.step)},
             }
         )
+        # Leak fix: the per-chunk fp32 snapshot above (and the periodic ~4.7 GB
+        # checkpoint copy created by snapshot()) are freed by reference counting,
+        # but glibc keeps those arenas resident. Hand the freed pages back to the
+        # OS here -- the path every policy runs each chunk -- so RSS tracks the
+        # live working set instead of the allocator high-water mark.
+        _return_freed_memory_to_os()
+        return observation
 
     def probe_losses(self) -> np.ndarray:
         was_training = self.model.training
