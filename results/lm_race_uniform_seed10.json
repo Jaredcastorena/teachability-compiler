@@ -1,0 +1,49 @@
+{
+  "kind": "reference_trajectory",
+  "policy": "uniform_shuffle",
+  "provenance": {
+    "actions_manifest_hash": "0167b185dea129e0",
+    "config_hash": "a68a2ffbfcb68304",
+    "depth": 12,
+    "environment_version": "lm-v1",
+    "git_commit": "92d63d4e8bb4df75c3b71618f31ddde2378b2bcd",
+    "seed": 10,
+    "tokens_manifest_hash": "312ddc758f32b5bdd11030d1df9cba70c7bc1694a6ad9de082f63d69aa91dad6"
+  },
+  "token_budget": 600000000,
+  "trajectory": [
+    {
+      "chunk": 0,
+      "holdout_ce": 10.556124448776245,
+      "probe_mean": 10.553320705890656,
+      "step": 0,
+      "tokens": 0,
+      "val_bpb": 3.42231808279242
+    },
+    {
+      "chunk": 1,
+      "holdout_ce": 5.265679180622101,
+      "probe_mean": 5.217035839955012,
+      "step": 200,
+      "tokens": 6553600,
+      "val_bpb": 1.7365612124800622
+    },
+    {
+      "chunk": 2,
+      "holdout_ce": 4.680671811103821,
+      "probe_mean": 4.661443054676056,
+      "step": 400,
+      "tokens": 13107200,
+      "val_bpb": 1.560127256458312
+    },
+    {
+      "chunk": 3,
+      "holdout_ce": 4.473126113414764,
+      "probe_mean": 4.476398309071858,
+      "step": 600,
+      "tokens": 19660800,
+      "val_bpb": 1.5032555903765534
+    }
+  ],
+  "wall_seconds": 535.2371547222137
+}

@@ -52,13 +52,25 @@ def _atomic_write_json(path: Path, obj: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
-def _proportional_action(oracle: NanochatLearnerOracle, steps: int, tokens_per_step: int
-                         ) -> CurriculumAction:
-    """All 24 actions, weighted by their train-token share (natural mixture)."""
+def _mixture_action(oracle: NanochatLearnerOracle, steps: int, tokens_per_step: int,
+                    mixture: str) -> CurriculumAction:
+    """Fixed mixture over all 24 actions: proportional, uniform, or edu_heavy."""
     names = list(oracle.action_names)
-    weights = np.asarray(
-        [float(oracle._train_tokens[name].shape[0]) for name in names], dtype=np.float64
-    )
+    if mixture == "uniform":
+        weights = np.full(len(names), 1.0 / len(names), dtype=np.float64)
+    else:
+        weights = np.asarray(
+            [float(oracle._train_tokens[name].shape[0]) for name in names], dtype=np.float64
+        )
+        if mixture == "edu_heavy":
+            # Crude FineWeb-Edu-style quality tilt on the natural mixture.
+            for i, name in enumerate(names):
+                if name.startswith("semantic_") and name.endswith("_hi"):
+                    weights[i] *= 3.0
+                elif name in ("code_heavy", "math_heavy"):
+                    weights[i] *= 2.0
+        elif mixture != "proportional":
+            raise ValueError(f"unknown mixture {mixture!r}")
     weights = weights / weights.sum()
     return CurriculumAction(
         cluster_ids=tuple(names),
@@ -82,6 +94,8 @@ def main() -> None:
     parser.add_argument("--out", default="results/lm_reference_seed0.json")
     parser.add_argument("--ckpt-dir", default="data/checkpoints/reference")
     parser.add_argument("--ckpt-every-chunks", type=int, default=8)
+    parser.add_argument("--mixture", default="proportional",
+                        choices=["proportional", "uniform", "edu_heavy"])
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
 
@@ -112,7 +126,7 @@ def main() -> None:
         chunk_index = int(blob["chunk_index"])
         print(f"resumed at chunk {chunk_index}, tokens_seen {oracle.tokens_seen:,}")
 
-    action = _proportional_action(oracle, args.steps_per_chunk, tokens_per_step)
+    action = _mixture_action(oracle, args.steps_per_chunk, tokens_per_step, args.mixture)
     provenance = {
         "seed": args.seed,
         "config_hash": _config_hash(args),
@@ -143,7 +157,7 @@ def main() -> None:
             "val_bpb": val_bpb, "holdout_ce": holdout_ce, "probe_mean": probe_mean,
         })
         _atomic_write_json(out_path, {
-            "kind": "reference_trajectory", "policy": "proportional_shuffle",
+            "kind": "reference_trajectory", "policy": f"{args.mixture}_shuffle",
             "token_budget": args.token_budget, "trajectory": trajectory,
             "provenance": provenance,
             "wall_seconds": time.time() - wall_start,
@@ -164,7 +178,7 @@ def main() -> None:
         ckpt_dir / "target.pt",
     )
     _atomic_write_json(out_path, {
-        "kind": "reference_trajectory", "policy": "proportional_shuffle",
+        "kind": "reference_trajectory", "policy": f"{args.mixture}_shuffle",
         "token_budget": args.token_budget, "trajectory": trajectory,
         "target": {
             "tokens": final["tokens"], "val_bpb": final["val_bpb"],

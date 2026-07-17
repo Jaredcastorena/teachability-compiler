@@ -1,0 +1,33 @@
+{
+  "kind": "reference_trajectory",
+  "policy": "edu_heavy_shuffle",
+  "provenance": {
+    "actions_manifest_hash": "0167b185dea129e0",
+    "config_hash": "58d3c989c27b8f62",
+    "depth": 12,
+    "environment_version": "lm-v1",
+    "git_commit": "92d63d4e8bb4df75c3b71618f31ddde2378b2bcd",
+    "seed": 10,
+    "tokens_manifest_hash": "312ddc758f32b5bdd11030d1df9cba70c7bc1694a6ad9de082f63d69aa91dad6"
+  },
+  "token_budget": 600000000,
+  "trajectory": [
+    {
+      "chunk": 0,
+      "holdout_ce": 10.556124448776245,
+      "probe_mean": 10.553320705890656,
+      "step": 0,
+      "tokens": 0,
+      "val_bpb": 3.42231808279242
+    },
+    {
+      "chunk": 1,
+      "holdout_ce": 5.241888105869293,
+      "probe_mean": 5.252691666285197,
+      "step": 200,
+      "tokens": 6553600,
+      "val_bpb": 1.74203345221203
+    }
+  ],
+  "wall_seconds": 329.64090943336487
+}

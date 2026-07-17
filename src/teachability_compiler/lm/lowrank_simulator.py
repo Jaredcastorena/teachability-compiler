@@ -298,14 +298,18 @@ class LowRankTransitionPredictor:
         self._z_std = np.maximum(self._z_std, 1e-6)
 
         counts = np.bincount(action_idx, minlength=self.num_actions)
-        missing = [self.action_names[i] for i, count in enumerate(counts) if count == 0]
-        if missing:
-            raise ValueError(f"Cannot compute per-action means; missing observations: {missing}")
-
-        mu = np.zeros((self.num_actions, self.probe_dim), dtype=np.float64)
+        # Actions not yet observed (e.g. early online refits during a race
+        # bootstrap) fall back to the global mean delta as their prior; the
+        # anchor sharpens once the action is actually executed.
+        global_mean = y.mean(axis=0)
+        mu = np.tile(global_mean, (self.num_actions, 1))
         for action_i in range(self.num_actions):
-            mu[action_i] = y[action_idx == action_i].mean(axis=0)
+            if counts[action_i] > 0:
+                mu[action_i] = y[action_idx == action_i].mean(axis=0)
         self._mu_np = mu
+        self.unseen_actions = [
+            self.action_names[i] for i, count in enumerate(counts) if count == 0
+        ]
         residual = y - mu[action_idx]
         self._residual_std = np.maximum(residual.std(axis=0), 1e-6)
 
