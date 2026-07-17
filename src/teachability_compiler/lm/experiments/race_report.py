@@ -94,19 +94,12 @@ def _median_or_none(values: list[int | float | None]) -> float | None:
 def compute_compression_ratios(
     per_run: list[dict[str, Any]],
     thresholds: dict[str, float],
+    reference_tokens: dict[str, int | float | None],
 ) -> dict[str, dict[str, float | None]]:
-    reference_runs = [
-        run
-        for run in per_run
-        if run["policy"] == "proportional_shuffle" or run["kind"] == "reference_trajectory"
-    ]
-    reference_tokens = {
-        label: _median_or_none(
-            [run["tokens_to_threshold"].get(label) for run in reference_runs],
-        )
-        for label in thresholds
-    }
-
+    # The reference denominator comes ONLY from the explicit --reference run.
+    # Never infer it from run kind: fixed-mixture baselines produced by the
+    # reference driver also carry kind == "reference_trajectory" and would
+    # silently corrupt the denominators.
     policies = sorted({str(run["policy"]) for run in per_run})
     compression_ratios: dict[str, dict[str, float | None]] = {}
     for policy in policies:
@@ -151,23 +144,6 @@ def _atomic_write_json(path: Path, payload: dict[str, Any]) -> None:
     tmp_path.replace(path)
 
 
-def _target_val_bpb_from_runs(runs: list[tuple[str, dict[str, Any]]]) -> float:
-    for _, data in runs:
-        target = data.get("target")
-        if isinstance(target, dict) and "val_bpb" in target:
-            return float(target["val_bpb"])
-
-    reference_like = [
-        data for _, data in runs if policy_for_run(data) == "proportional_shuffle"
-    ]
-    for data in reference_like:
-        trajectory = list(data.get("trajectory", []))
-        if trajectory and "val_bpb" in trajectory[-1]:
-            return float(trajectory[-1]["val_bpb"])
-
-    raise ValueError("could not infer target val_bpb from any run")
-
-
 def print_table(
     compression_ratios: dict[str, dict[str, float | None]],
     thresholds: dict[str, float],
@@ -185,14 +161,36 @@ def print_table(
         print(" ".join([policy.ljust(policy_width), *cells]))
 
 
-def build_report(run_paths: list[Path]) -> dict[str, Any]:
-    runs = [(str(path), _load_json(path)) for path in run_paths]
-    target_val_bpb = _target_val_bpb_from_runs(runs)
+def build_report(run_paths: list[Path], reference_path: Path) -> dict[str, Any]:
+    reference_data = _load_json(reference_path)
+    target = reference_data.get("target")
+    if not isinstance(target, dict) or "val_bpb" not in target:
+        raise ValueError(
+            f"--reference file {reference_path} has no completed target block; "
+            "it must be the finished proportional-shuffle reference run"
+        )
+    target_val_bpb = float(target["val_bpb"])
     thresholds = thresholds_for_target(target_val_bpb)
+
+    reference_summary = summarize_run(str(reference_path), reference_data, thresholds)
+    reference_tokens: dict[str, int | float | None] = {
+        label: reference_summary["tokens_to_threshold"].get(label) for label in thresholds
+    }
+
+    runs = [(str(path), _load_json(path)) for path in run_paths]
     per_run = summarize_runs(runs, thresholds)
-    compression_ratios = compute_compression_ratios(per_run, thresholds)
+    compression_ratios = compute_compression_ratios(per_run, thresholds, reference_tokens)
     return {
+        "claim_scope": (
+            "training-token compression only: probe sweeps and simulator fitting are"
+            " logged as wall-time overhead, not converted to learner-token cost"
+        ),
         "thresholds": thresholds,
+        "reference": {
+            "path": str(reference_path),
+            "tokens_to_threshold": reference_tokens,
+            "target_val_bpb": target_val_bpb,
+        },
         "per_run": per_run,
         "compression_ratios": compression_ratios,
         "provenance": {"git_commit": _git_commit()},
@@ -202,6 +200,11 @@ def build_report(run_paths: list[Path]) -> dict[str, Any]:
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--runs", nargs="+", required=True)
+    parser.add_argument(
+        "--reference",
+        required=True,
+        help="Completed proportional-shuffle reference JSON; sole source of CR denominators.",
+    )
     parser.add_argument("--out", default="results/lm_race_report.json")
     return parser
 
@@ -212,8 +215,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
-    report = build_report([Path(path) for path in args.runs])
+    report = build_report([Path(path) for path in args.runs], Path(args.reference))
     print_table(report["compression_ratios"], report["thresholds"])
+    print(f"\nclaim scope: {report['claim_scope']}")
     _atomic_write_json(Path(args.out), report)
 
 

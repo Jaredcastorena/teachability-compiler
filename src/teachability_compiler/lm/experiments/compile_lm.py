@@ -368,6 +368,7 @@ def _save_checkpoint(
     trajectory: list[dict[str, Any]],
     chunk_index: int,
     policy_state: dict[str, Any],
+    transition_pool: list[Any] | None = None,
 ) -> None:
     import torch
 
@@ -377,6 +378,9 @@ def _save_checkpoint(
         "trajectory": trajectory,
         "chunk_index": int(chunk_index),
         "policy_state": policy_state,
+        # Compiler/staged: the simulator's training evidence must survive a
+        # crash, otherwise a resumed run is a different policy.
+        "transition_pool": list(transition_pool or []),
     }
     torch.save(payload, _checkpoint_path(ckpt_dir))
     torch.save(payload, ckpt_dir / f"chunk_{chunk_index:06d}.pt")
@@ -541,6 +545,7 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
     git_commit = _git_commit()
     notes: list[str] = []
 
+    restored_pool: list[Any] = []
     if args.resume:
         checkpoint = _load_checkpoint(ckpt_dir, args.device)
         oracle.restore(checkpoint["snapshot"])
@@ -550,11 +555,12 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
             dict(checkpoint.get("policy_state", {})),
             num_actions,
         )
+        restored_pool = list(checkpoint.get("transition_pool", []))
         notes.append("Resumed from checkpoint.")
         if args.policy in {"compiler", "staged"}:
             notes.append(
-                "Resume restores oracle and policy state, but not the transition pool; "
-                "the simulator is refit from scratch using post-resume observations only."
+                f"Resume restored the transition pool ({len(restored_pool)} observations); "
+                "the simulator refits on the full pre+post-resume evidence."
             )
         resumed = True
     else:
@@ -583,7 +589,7 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
     wall_offset = float(overhead.get("wall_seconds", 0.0))
     wall_start = time.perf_counter()
 
-    transition_pool: list[Any] = []
+    transition_pool: list[Any] = list(restored_pool)
     simulator: Any = None
     sim_initial_fit_done = bool(policy_state.get("sim_initial_fit_done", False))
     sim_last_fit_chunk = policy_state.get("sim_last_fit_chunk")
@@ -794,6 +800,7 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
                 trajectory,
                 chunk_index,
                 dict(policy_state),
+                transition_pool,
             )
 
         visible_text = "-" if visible_probe_mean is None else f"{visible_probe_mean:.4f}"
@@ -819,7 +826,10 @@ def run_race(args: argparse.Namespace) -> dict[str, Any]:
 
     output = write_output()
     sync_policy_state()
-    _save_checkpoint(ckpt_dir, oracle.snapshot(), trajectory, chunk_index, dict(policy_state))
+    _save_checkpoint(
+        ckpt_dir, oracle.snapshot(), trajectory, chunk_index, dict(policy_state),
+        transition_pool,
+    )
 
     if trajectory:
         final_point = trajectory[-1]
@@ -863,7 +873,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--ckpt-every-chunks", type=int, default=16)
     parser.add_argument("--resume", action="store_true")
 
-    parser.add_argument("--bootstrap-chunks", type=int, default=12)
+    # Default covers every action once so the first simulator fit has a real
+    # anchor per action (24 chunks ~= 39M tokens, paid inside the budget).
+    parser.add_argument("--bootstrap-chunks", type=int, default=24)
     parser.add_argument("--refit-every-chunks", type=int, default=8)
     parser.add_argument("--explore-epsilon", type=float, default=0.1)
     parser.add_argument("--sim-rank", type=int, default=6)

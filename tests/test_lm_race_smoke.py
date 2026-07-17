@@ -13,6 +13,7 @@ from teachability_compiler.lm.experiments.compile_lm import (
 )
 from teachability_compiler.lm.experiments.race_report import (
     compute_compression_ratios,
+    summarize_run,
     summarize_runs,
     thresholds_for_target,
 )
@@ -106,12 +107,30 @@ def test_race_report_threshold_crossing_and_compression_ratios() -> None:
         "overhead": {"probe_wall_seconds": 3.0},
     }
 
+    # Regression for the denominator-corruption bug: a fixed-mixture baseline
+    # produced by the reference DRIVER carries kind == "reference_trajectory"
+    # but must never contribute to the reference denominators.
+    uniform_as_ref_kind = {
+        "kind": "reference_trajectory",
+        "policy": "uniform_shuffle",
+        "target": {"val_bpb": 1.0},
+        "trajectory": [
+            {"tokens": 10, "val_bpb": 1.10, "holdout_ce": 2.0},
+            {"tokens": 20, "val_bpb": 1.00, "holdout_ce": 1.7},
+        ],
+        "overhead": {},
+    }
+
     thresholds = thresholds_for_target(1.0)
+    reference_summary = summarize_run("reference.json", reference, thresholds)
+    reference_tokens = {
+        label: reference_summary["tokens_to_threshold"].get(label) for label in thresholds
+    }
     per_run = summarize_runs(
-        [("reference.json", reference), ("uniform.json", race)],
+        [("uniform.json", race), ("uniform_shuffle.json", uniform_as_ref_kind)],
         thresholds,
     )
-    compression_ratios = compute_compression_ratios(per_run, thresholds)
+    compression_ratios = compute_compression_ratios(per_run, thresholds, reference_tokens)
 
     uniform = next(run for run in per_run if run["policy"] == "uniform")
     assert uniform["tokens_to_threshold"]["1.1x"] == 100
@@ -120,6 +139,11 @@ def test_race_report_threshold_crossing_and_compression_ratios() -> None:
     assert uniform["probe_overhead_seconds"] == pytest.approx(3.0)
 
     # Reference reaches 1.10x at 200 tokens; uniform reaches it at 100 tokens.
+    # The uniform_shuffle run (which would drag the median denominator to 105
+    # under kind-based inference) must have no effect on this ratio.
     assert compression_ratios["uniform"]["1.1x"] == pytest.approx(2.0)
     # Reference reaches 1.00x, but uniform misses it.
     assert compression_ratios["uniform"]["1x"] is None
+    # The mislabeled baseline is reported as its own policy row, denominator
+    # still from the true reference (200 / 10 = 20).
+    assert compression_ratios["uniform_shuffle"]["1.1x"] == pytest.approx(20.0)
