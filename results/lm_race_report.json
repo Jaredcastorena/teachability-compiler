@@ -1,0 +1,174 @@
+{
+  "claim_scope": "training-token compression only: probe sweeps and simulator fitting are logged as wall-time overhead, not converted to learner-token cost",
+  "thresholds": {
+    "1.1x": 1.280613530717875,
+    "1.05x": 1.2224038247761535,
+    "1.02x": 1.1874780012111203,
+    "1.01x": 1.1758360600227762,
+    "1.005x": 1.1700150894286039,
+    "1x": 1.1641941188344318
+  },
+  "reference": {
+    "path": "results/lm_reference_seed0.json",
+    "tokens_to_threshold": {
+      "1.1x": 117964800,
+      "1.05x": 281804800,
+      "1.02x": 576716800,
+      "1.01x": 714342400,
+      "1.005x": 865075200,
+      "1x": 956825600
+    },
+    "target_val_bpb": 1.1641941188344318
+  },
+  "per_run": [
+    {
+      "path": "results/lm_race_uniform_seed10.json",
+      "kind": "reference_trajectory",
+      "policy": "uniform_shuffle",
+      "tokens_to_threshold": {
+        "1.1x": 222822400,
+        "1.05x": 602931200,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.221148847219675,
+      "final_holdout_ce": 3.6654752492904663,
+      "probe_overhead_seconds": 0.0
+    },
+    {
+      "path": "results/lm_race_edu_heavy_seed10.json",
+      "kind": "reference_trajectory",
+      "policy": "edu_heavy_shuffle",
+      "tokens_to_threshold": {
+        "1.1x": 235929600,
+        "1.05x": null,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.2295202333751352,
+      "final_holdout_ce": 3.6493833661079407,
+      "probe_overhead_seconds": 0.0
+    },
+    {
+      "path": "results/lm_race_worst_probe_seed10.json",
+      "kind": "lm_race",
+      "policy": "worst_probe",
+      "tokens_to_threshold": {
+        "1.1x": 367001600,
+        "1.05x": null,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.3128668667492187,
+      "final_holdout_ce": 3.9330636262893677,
+      "probe_overhead_seconds": 1048.815289259932
+    },
+    {
+      "path": "results/lm_race_compiler_seed10.json",
+      "kind": "lm_race",
+      "policy": "compiler",
+      "tokens_to_threshold": {
+        "1.1x": 344064000,
+        "1.05x": null,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.2523302038304074,
+      "final_holdout_ce": 3.7609526216983795,
+      "probe_overhead_seconds": 465.80616017535795
+    },
+    {
+      "path": "results/lm_race_staged_seed10.json",
+      "kind": "lm_race",
+      "policy": "staged",
+      "tokens_to_threshold": {
+        "1.1x": 340787200,
+        "1.05x": null,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.2609176042862678,
+      "final_holdout_ce": 3.802892357110977,
+      "probe_overhead_seconds": 463.915987035085
+    },
+    {
+      "path": "results/lm_race_proportional_seed10.json",
+      "kind": "reference_trajectory",
+      "policy": "proportional_shuffle",
+      "tokens_to_threshold": {
+        "1.1x": 229376000,
+        "1.05x": null,
+        "1.02x": null,
+        "1.01x": null,
+        "1.005x": null,
+        "1x": null
+      },
+      "final_val_bpb": 1.224438131258625,
+      "final_holdout_ce": 3.6441639363765717,
+      "probe_overhead_seconds": 0.0
+    }
+  ],
+  "compression_ratios": {
+    "compiler": {
+      "1.1x": 0.34285714285714286,
+      "1.05x": null,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    },
+    "edu_heavy_shuffle": {
+      "1.1x": 0.5,
+      "1.05x": null,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    },
+    "proportional_shuffle": {
+      "1.1x": 0.5142857142857142,
+      "1.05x": null,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    },
+    "staged": {
+      "1.1x": 0.34615384615384615,
+      "1.05x": null,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    },
+    "uniform_shuffle": {
+      "1.1x": 0.5294117647058824,
+      "1.05x": 0.4673913043478261,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    },
+    "worst_probe": {
+      "1.1x": 0.32142857142857145,
+      "1.05x": null,
+      "1.02x": null,
+      "1.01x": null,
+      "1.005x": null,
+      "1x": null
+    }
+  },
+  "provenance": {
+    "git_commit": "df4ae06739dec8d89103a320283d58b9f070d978"
+  }
+}
