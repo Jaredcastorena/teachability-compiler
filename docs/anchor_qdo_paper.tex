@@ -1,0 +1,545 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,tabularx,longtable}
+\usepackage{graphicx,float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{enumitem,needspace}
+\usepackage{fancyhdr}
+\usepackage[hidelinks,pdftitle={Rescaling-Invariant Anchor-QDO on Adam},pdfauthor={Jared Castorena},pdfsubject={A formalization and controlled continuation study of history-repulsive optimization in small ReLU networks}]{hyperref}
+\usepackage{url}
+\urlstyle{tt}
+\setlength{\emergencystretch}{2em}
+\widowpenalty=10000
+\clubpenalty=10000
+\setlength{\parskip}{3pt}
+\setlength{\parindent}{1em}
+\setlist{nosep,leftmargin=*}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small Rescaling-Invariant Anchor-QDO on Adam}
+\fancyhead[R]{\small Research draft 1.0}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{14pt}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\theoremstyle{remark}\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\relu}{\operatorname{ReLU}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\range}{\operatorname{range}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\RI}{\textsc{RI-Anchor-QDO}}
+\newcommand{\NMSE}{\operatorname{NMSE}}
+\title{\textbf{Rescaling-Invariant Anchor-QDO on Adam}\\[5pt]
+\large History-repulsive continuation for recovering collapsed ReLU features}
+\author{Jared Castorena\\1728 Studios LLC}
+\date{September 24, 2026 \quad $\cdot$ \quad Manuscript version 1.0}
+\begin{document}
+\maketitle
+\begin{abstract}
+An architecture can express an exact target yet train into a representation that discards distinctions required by that target. We formalize an Adam-side intervention that repels a network from historical parameter configurations after removing positive per-neuron ReLU rescaling ambiguity. Each neuron is represented by its unit incoming direction and effective outgoing coefficient. A projected Gaussian penalty on these coordinates supplies a separate, annealed displacement; Adam's moments contain task gradients only. We derive the exact pullback, prove penalty invariance and orthogonality of its force to infinitesimal rescaling directions, and distinguish these properties from invariance of the complete optimizer. In an archived controlled study of bias-free $8\!\to\!H\!\to\!1$ networks, the target fits at $H=4$. On 64 original width-four checkpoints and three paired continuation restarts, ordinary Adam succeeds on $57/64$ trials in each restart; the invariant intervention succeeds on $62$, $61$, and $59$. Mean held-out normalized squared error decreases from $0.01174553$ to $0.00560537$. The 11 additional successful continuations involve six source checkpoints and recover all four generating features without adding parameters or resetting neurons. Neuron reset remains stronger. Temporally coherent controls explain part of the advantage, and the invariant method's error-gain interval versus a rotated force-path control includes zero. A literal fixed-identity SGD variant does not improve success counts. These findings identify a useful continuation intervention and observable repairs within one synthetic task family, not general optimizer superiority or a language-model scaling law.
+\end{abstract}
+\noindent\textbf{Keywords:} optimization geometry; ReLU rescaling symmetry; historical anchors; feature allocation; learning reliability; mechanistic diagnostics.
+
+\section{Introduction}
+A model's representational sufficiency and the reliability with which training reaches a useful representation are different questions. The distinction is unusually direct in a teacher--student experiment where the smallest student architecture already contains the teacher function. An unsuccessful student cannot be dismissed as lacking the architectural capacity to implement the target. Its learned weights, their trajectory, and the information preserved by its intermediate maps can instead be inspected.
+
+Earlier experiments in this project found small ReLU networks that mixed two target features before rectifying them, although the target required those features to be rectified separately. Successful and failed networks could have identical ordinary matrix ranks and identical full-parameter Jacobian ranks. Some failures admitted exact collisions: distinct inputs with different required outputs mapped to the same complete intermediate state. Reinitializing one existing neuron or adding initially cancelling active neurons repaired these failures, whereas inactive parameter padding did not \cite{artifactAnatomy,artifactProjection}.
+
+These observations motivate a less discontinuous intervention: modify the training trajectory without replacing a neuron. The original Anchor-QDO design specifies Gaussian repulsion from historical anchors in a projected parameter space. However, ordinary parameter distance can increase along a ReLU rescaling that leaves the function exactly unchanged. The present update applies the same anchor construction to coordinates that remove this ambiguity and adds the resulting pullback force separately to Adam \cite{adam,artifactQdo}.
+
+The paper contributes an explicit mathematical specification of this update and an evidence-grounded account of the archived experiments. Its scope is deliberately concrete: positive-rescaling invariance of a \emph{penalty}, continuous-in-parameters repair without resets, full-weight diagnostics of the resulting computations, and controls separating useful exploration from claims about uniquely beneficial anchor directions. The results do not supply a convergence theorem for Adam, and a functionally invariant penalty does not imply an invariant optimization trajectory.
+
+\paragraph{Evidence and provenance.}
+The empirical findings are drawn from the supplied experiment reports, source code, saved checkpoints, and machine-readable results \cite{artifactQdo,artifactAnatomy,artifactDirectional,artifactProjection}. For this manuscript, archive checksums and result aggregations were rechecked; models were not retrained. Mathematical propositions below are explicit derivations from the frozen update, with their domains stated. Additional literature is used for context rather than as evidence for this experiment. Appendix~\ref{app:provenance} records the distinction.
+
+\section{Task and observations motivating the update}\label{sec:task}
+\subsection{A target that fits in the smallest architecture}
+For $x\in\R^d$, the student is
+\begin{equation}\label{eq:model}
+f_\theta(x)=\sum_{i=1}^{H}a_i\relu(w_i^\top x),\qquad
+\theta=(W,a),\quad W=[w_1,\ldots,w_H]\in\R^{d\times H}.
+\end{equation}
+There are $N=(d+1)H$ parameters, no biases, and one hidden layer. The study uses $d=8$, $H\in\{4,6,8,12,16\}$, and float64 arithmetic. Inputs satisfy $x\sim\mathcal N(0,I_8)$. The teacher is
+\begin{equation}\label{eq:teacher}
+f_*(x)=\sum_{j=1}^{4}c_j\relu(q_j^\top x),\quad
+q_i^\top q_j=\delta_{ij},\quad
+c=(-\tfrac12,+\tfrac12,-\tfrac12,+\tfrac12).
+\end{equation}
+Every tested student can implement this function. Its mean is zero and variance is
+\begin{equation}\label{eq:var}
+V_* = \Var[f_*(x)]=\frac12-\frac{1}{2\pi}.
+\end{equation}
+The 64 trials are differently rotated teachers and independently initialized students from this \emph{one} task family. They are not 64 distinct types of reasoning task.
+
+The original fresh-example study trained three Adam learning rates per width, selected a single rate per width using pooled validation error, and then evaluated 20,000 held-out inputs per trial. It obtained $56/64$ successes at width four and $64/64$ at all larger widths. Success means $\NMSE<10^{-3}$, where $\NMSE=\E[(f_\theta-f_*)^2]/V_*$ or its held-out estimate. This is a network-level error criterion, not example-level classification accuracy \cite{artifactAnatomy}.
+
+\subsection{What was lost in the unsuccessful representations}
+For two features $A$ and $B$,
+\begin{equation}\label{eq:merge}
+\relu(A)+\relu(B)\ne\relu(A+B)\quad\text{in general}.
+\end{equation}
+Preserving $A+B$ does not preserve the contrast $A-B$. The prior projection audit identified both information loss in $W^\top x$ and further loss in $\relu(W^\top x)$. In 16 failed width-four directional-guidance networks, average geometric retention of a same-sign feature pair's common direction was about $99.6\%$, versus $27.7\%$ for its contrast. Their first projection accounted for $58.6\%$ of their aggregate current squared error as a fixed-projection conditional-prediction floor. These are measurements on that particular failed cohort, not percentages of all small-model error \cite{artifactProjection}.
+
+Exact collision witnesses strengthen the diagnosis beyond a failed probe: if $h(x_1)=h(x_2)$ but $f_*(x_1)\ne f_*(x_2)$, no readout of $h$ alone can produce both required answers. Such witnesses do not themselves explain why training selected the offending projection. Appendix~\ref{app:diagnostics} specifies the diagnostic quantities.
+
+\subsection{Why simply adding structural supervision was insufficient}
+A separate experiment inferred a four-dimensional task-relevant span from observed training pairs, without giving its label builder teacher directions. Mean overlap with the generating span was $99.9949\%$. Nevertheless, on its fixed-dataset protocol, directional guidance reduced width-four success from $54/64$ to $48/64$. A teacher-derivative diagnostic and a smooth alternative interface did not produce a reliable improvement over the matched baseline \cite{artifactDirectional}.
+
+The distinction is between recovering a span and learning a useful nonlinear decomposition \emph{within} it. A downstream derivative loss can also provide zero parameter gradient at an all-inactive ReLU example, despite nonzero target derivatives. This motivated a force depending directly on parameters. The QDO experiment does \emph{not} use those data-derived directions: its projection is random and teacher-independent. Thus its result cannot be credited to the earlier structural labels.
+
+\section{Rescaling-invariant anchor geometry}\label{sec:geometry}
+\subsection{Canonical coordinates for positive per-neuron rescaling}
+For nonzero incoming weights, define
+\begin{equation}\label{eq:phi}
+r_i=\norm{w_i},\qquad u_i=\frac{w_i}{r_i},\qquad b_i=a_i r_i,
+\qquad \phi(\theta)=\operatorname{pack}(u_1,\ldots,u_H,b_1,\ldots,b_H)\in\R^N.
+\end{equation}
+The packing order matches the archived implementation: the incoming matrix is flattened before the output coefficients. The ambient dimension remains $N$, but each $u_i$ lies on a unit sphere. In these coordinates,
+\begin{equation}
+f_\theta(x)=\sum_i b_i\relu(u_i^\top x).
+\end{equation}
+The exact statements below apply on
+$\mathcal D=\{\theta:\norm{w_i}>0\ \forall i\}$.
+
+\Needspace{10\baselineskip}
+\begin{proposition}[Positive-rescaling invariance]\label{prop:invariance}
+For $s_i>0$, let $S_s$ act as $(w_i,a_i)\mapsto(s_iw_i,a_i/s_i)$. Then
+\begin{equation}
+f_{S_s\theta}=f_\theta,\qquad \phi(S_s\theta)=\phi(\theta).
+\end{equation}
+Consequently, any scalar penalty depending on $\theta$ only through $\phi(\theta)$ is invariant to these transformations.
+\end{proposition}
+\begin{proof}
+Positive homogeneity gives $\relu(s_it)=s_i\relu(t)$. Also $r_i'=s_ir_i$, so $u_i'=u_i$ and $b_i'=(a_i/s_i)(s_ir_i)=b_i$.
+\end{proof}
+This removes a known redundancy, not every equivalence between neural networks. Neuron indices are tracked across historical checkpoints; the distance is not invariant to permuting only one checkpoint's neurons. Nor does it identify every cancelling or zero-output representation of the same function: when $b_i=0$, changing $u_i$ changes these coordinates without changing that unit's current output. It is therefore not a complete metric on neural-network functions.
+
+\subsection{Historical projected Gaussian penalty}
+Let $\alpha_1,\ldots,\alpha_K$ be fixed historical parameter states and let
+$Q\in\R^{N\times k}$ satisfy $Q^\top Q=I_k$. Define
+\begin{equation}\label{eq:project}
+z(\theta)=Q^\top\phi(\theta),\quad z_j=Q^\top\phi(\alpha_j),\quad
+\delta_j(\theta)=z(\theta)-z_j.
+\end{equation}
+For fixed bandwidth $\tau>0$, the unweighted penalty is
+\begin{equation}\label{eq:penalty}
+\mathcal R(\theta)=\sum_{j=1}^{K}\kappa_j(\theta),\qquad
+\kappa_j(\theta)=\exp\left[-\frac{\norm{\delta_j(\theta)}^2}{2\tau^2}\right].
+\end{equation}
+It is high near projected historical states and is reduced by moving away in the represented directions. The source design's $k$-normalized form uses $\tau^2=k\sigma^2$; the present notation absorbs that factor into $\tau$.
+
+The raw-coordinate comparator substitutes $\phi(\theta)=\theta$. For the invariant method, the latent negative gradient is
+\begin{equation}\label{eq:latentforce}
+r_z(\theta)=\frac{1}{\tau^2}\sum_{j=1}^{K}\kappa_j(\theta)\delta_j(\theta),
+\end{equation}
+and the force in trainable parameters is
+\begin{equation}\label{eq:force}
+F(\theta)=-\nabla_\theta\mathcal R(\theta)
+=D\phi(\theta)^\top Qr_z(\theta).
+\end{equation}
+The optimizer's projection $Q$ acts on parameter-derived coordinates. It is different from the network's input projection $W^\top x$.
+
+\subsection{Exact pullback and exclusion of rescaling directions}
+Unpack $v=Qr_z$ into $(v_{u_i},v_{b_i})$. Differentiating Equation~\eqref{eq:phi} gives
+\begin{align}
+\mathrm du_i&=\frac{1}{r_i}(I-u_iu_i^\top)\,\mathrm dw_i,\\
+\mathrm db_i&=a_i u_i^\top\mathrm dw_i+r_i\,\mathrm da_i.
+\end{align}
+Therefore the force used by the implementation is
+\begin{align}
+F_{w_i}&=\frac{(I-u_iu_i^\top)v_{u_i}}{r_i}+a_i v_{b_i}u_i,\label{eq:pullw}\\
+F_{a_i}&=r_i v_{b_i}.\label{eq:pulla}
+\end{align}
+These are Euclidean pullback derivatives, not inverse-Jacobian or natural-gradient updates.
+
+\begin{proposition}[No infinitesimal positive-rescaling component]\label{prop:horizontal}
+Let $\xi_i$ be zero outside neuron $i$ and equal to $(w_i,-a_i)$ within that neuron. Then
+\begin{equation}\label{eq:horizontal}
+\inner{F(\theta)}{\xi_i}=0\qquad\text{for every }i.
+\end{equation}
+\end{proposition}
+\begin{proof}
+Since $w_i=r_iu_i$ and $u_i^\top(I-u_iu_i^\top)=0$,
+$w_i^\top F_{w_i}=a_i r_i v_{b_i}=a_i F_{a_i}$. Their difference is zero. Equivalently, $D\phi\,\xi_i=0$ and $F=D\phi^\top Qr_z$.
+\end{proof}
+The exclusion is instantaneous and applies to the auxiliary force. It does not assert that Adam's task update excludes these directions, that a finite step follows a quotient-space geodesic, or that every remaining direction changes the function usefully.
+
+\subsection{Penalty invariance is not optimizer invariance}\label{sec:notinvariant}
+For a linear rescaling $S$ satisfying $\mathcal R(S\theta)=\mathcal R(\theta)$, the gradient transforms as
+\begin{equation}\label{eq:covariance}
+\nabla\mathcal R(S\theta)=S^{-\top}\nabla\mathcal R(\theta),
+\end{equation}
+not generally as $S\nabla\mathcal R(\theta)$. Thus Euclidean gradient steps are not automatically equivariant to a nonorthogonal change of parameterization. Coordinatewise Adam moments and the one-time Euclidean step-norm calibration add further coordinate dependence. The precise name is \emph{Adam with a rescaling-invariant anchor penalty}; the paper does not claim a fully rescaling-invariant optimizer.
+
+\subsection{Zero-center behavior and bounded forces}
+A single Gaussian has zero gradient at its projected center. Historical anchors avoid deliberately initializing the sole repulsor at the current state, but multiple terms can still cancel. No deterministic escape guarantee follows from repulsion alone.
+
+\begin{lemma}[Latent force bounds]\label{lem:bound}
+For Equation~\eqref{eq:penalty} with fixed anchors,
+\begin{equation}
+\norm{r_z}\le \frac{K}{\tau\sqrt e},\qquad
+\norm{\nabla_z^2\mathcal R}_2\le\frac{K}{\tau^2}.
+\end{equation}
+Moreover, on $\mathcal D$,
+\begin{equation}\label{eq:bound}
+\norm{F(\theta)}\le
+\left[\max_i\max\{r_i^{-2},a_i^2+r_i^2\}\right]^{1/2}
+\frac{K}{\tau\sqrt e}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+For one Gaussian, $r\exp[-r^2/(2\tau^2)]/\tau^2$ is maximized at $r=\tau$. The Hessian has tangential eigenvalue $-e^{-s/2}/\tau^2$ and radial eigenvalue $(s-1)e^{-s/2}/\tau^2$, where $s=r^2/\tau^2$; their absolute values are at most $1/\tau^2$. Sum the bounds over anchors. From Equations~\eqref{eq:pullw}--\eqref{eq:pulla},
+\[
+\norm{D\phi_i^\top(p,q)}^2
+=\frac{\norm{(I-u_iu_i^\top)p}^2}{r_i^2}+(a_i^2+r_i^2)q^2.
+\]
+The block-diagonal operator bound and $\norm Q_2=1$ yield Equation~\eqref{eq:bound}.
+\end{proof}
+The latent penalty is smooth, but its pullback can become ill-conditioned when $r_i$ is small. The task is also nonsmooth at ReLU gate changes. These bounds are not a global descent or convergence theorem for the combined training algorithm.
+
+\section{The Adam-plus-anchor update}\label{sec:update}
+\subsection{Task-only moments and a separate displacement}
+At continuation step $t$, let $\ell_t(\theta)$ be minibatch \emph{unnormalized} mean squared error and $g_t=\nabla\ell_t(\theta_{t-1})$. Adam uses
+\begin{align}
+m_t&=\beta_1m_{t-1}+(1-\beta_1)g_t,&
+\widehat m_t&=m_t/(1-\beta_1^t),\\
+v_t&=\beta_2v_{t-1}+(1-\beta_2)g_t^{\odot2},&
+\widehat v_t&=v_t/(1-\beta_2^t),\\
+d_t^{\rm Adam}&=-\eta\frac{\widehat m_t}{\sqrt{\widehat v_t}+\epsilon}.&&
+\end{align}
+All divisions and square roots here are coordinatewise. The tested update is
+\begin{equation}\label{eq:mainupdate}
+\boxed{\theta_t=\theta_{t-1}+d_t^{\rm Adam}
++\eta\lambda_0 c_t\,D\phi(\theta_{t-1})^\top Q
+\left[\frac{1}{\tau^2}\sum_{j=1}^{K}\kappa_j(\theta_{t-1})\delta_j(\theta_{t-1})\right].}
+\end{equation}
+Only $g_t$ enters Adam's moments. Both terms are evaluated at the same pre-update weights. Feeding $g_t+\lambda_0c_t\nabla\mathcal R$ into Adam would implement a different optimizer.
+
+The settings are $\eta=0.01$, $(\beta_1,\beta_2)=(0.9,0.999)$, $\epsilon=10^{-8}$, and no weight decay. The auxiliary geometry uses the source design's $P=I$ special case. Adam's own adaptive diagonal scaling of task gradients is not a claim that the auxiliary geometry uses a time-varying $P$.
+
+\subsection{Anchor construction, calibration, and schedule}
+Every source first receives a common 160-step task-only Adam warm-up. States before updates $0,20,\ldots,140$ supply $K=8$ historical anchors; the common branching state is step 160. Each continuation then starts with fresh optimizer moments.
+
+For each trial, $Q$ is obtained by a reduced QR decomposition of a seeded $N\times8$ Gaussian matrix. The same $Q$ is used for raw and invariant geometries, but it acts on different feature maps. Bandwidth is the usual interpolated median of the eight distances from the branch state to the anchors,
+\begin{equation}
+\tau=\max\left\{10^{-3},\operatorname{median}_j\norm{Q^\top(\phi(\theta_0)-\phi(\alpha_j))}\right\}.
+\end{equation}
+Anchors, $Q$, and $\tau$ remain fixed throughout the continuation.
+
+On 2,048 fresh training calibration examples, a fresh base optimizer produces a hypothetical task-only step $d_{\rm cal}$ without changing the branch state. Let $F_0=F(\theta_0)$. The coefficient is
+\begin{equation}\label{eq:cal}
+\lambda_0=\begin{cases}
+\displaystyle\frac{\rho\norm{d_{\rm cal}}}{\eta\norm{F_0}},&\norm{F_0}\ge10^{-14},\\[5pt]
+0,&\text{otherwise},
+\end{cases}\qquad \rho=0.25.
+\end{equation}
+This matches the \emph{initial calibration} displacement, not each subsequent task step. The schedule is
+\begin{equation}\label{eq:fade}
+c_t=\begin{cases}1-(t-1)/1000,&1\le t\le1000,\\0,&1001\le t\le3000.\end{cases}
+\end{equation}
+Thus 2,000 final updates are ordinary task-only Adam. No anchors, auxiliary labels, or extra inference parameters are needed afterward.
+
+\begin{figure}[tb]
+\centering
+\fbox{\begin{minipage}{0.93\linewidth}
+\textbf{Algorithm 1: One fixed-history invariant-QDO continuation}\smallskip
+\begin{enumerate}[leftmargin=1.7em,itemsep=3pt]
+\item Run the shared 160-step warm-up; retain eight historical anchors and the common branch state $\theta_0$.
+\item Construct fixed $Q$, projected invariant anchor coordinates $z_j$, and bandwidth $\tau$. Calibrate $\lambda_0$ using Equation~\eqref{eq:cal}.
+\item Initialize $m_0=v_0=0$. For $t=1,\ldots,3000$, compute $g_t$ from the common training minibatch at $\theta_{t-1}$.
+\item Update Adam's task-only moments. Independently evaluate $F(\theta_{t-1})$ by Equations~\eqref{eq:latentforce}, \eqref{eq:pullw}, and \eqref{eq:pulla} when $c_t>0$.
+\item Apply $d_t^{\rm Adam}+\eta\lambda_0c_t F(\theta_{t-1})$ once. After step 1000, use task-only Adam.
+\item Evaluate the final network on the common held-out set and inspect its saved weights. Do not select a checkpoint or setting using the test set.
+\end{enumerate}
+\end{minipage}}
+\caption{The implemented intervention. The reset comparator intentionally modifies one unit at the branch; QDO does not.}
+\label{fig:algorithm}
+\end{figure}
+
+\subsection{Finite precision and the normalization floor}\label{sec:floor}
+The archive floors $r_i$ at $10^{-12}$. Its analytic pullback implements Equations~\eqref{eq:pullw}--\eqref{eq:pulla}, which assume an unfloored, positive norm. Below the floor, that formula is not in general the derivative of the clamped feature map, and exact scale invariance is not asserted. A manuscript-preparation scan of 324,608 channel norms across all saved snapshots, sources, branches, and anchors found a minimum $4.32535\times10^{-9}$, above the floor. This checks saved states, not every unstored intermediate update. A production implementation should specify its zero-norm behavior rather than silently extend the ideal proof to the clamped regime.
+
+\section{Experimental design and controls}\label{sec:design}
+\subsection{Cohorts, exposure, and endpoint}
+The primary source cohort comprises the 64 selected original fresh-example checkpoints at each of five widths. Two additional width-four cohorts are the saved fixed-dataset ordinary and directional-guidance checkpoints. These cohorts share nominal teachers and are correlated. All new continuations use the same fresh teacher bank, with a documented roundoff-level difference from one historical bank (Appendix~\ref{app:provenance}).
+
+Width-four cohorts receive three continuation restarts; larger original widths receive one. A restart jointly changes warm-up minibatches, continuation minibatches, projection seed, and perturbation/reset seeds. Within each restart, paired methods share the same branch, teacher, and training examples. The reset arm alone performs its specified initial replacement.
+
+Each continuation uses 3,000 fresh-data steps with batch 128, or 384,000 optimization examples. The shared warm-up costs another 20,480 examples; the 2,048-example calibration is additional training-side information and computation, not a test query. These are equal step/exposure comparisons, not established equal-wall-time or equal-FLOP comparisons. The final endpoint uses 20,000 held-out inputs per trial, drawn after training settings were fixed. A separate analytic Gaussian population calculation agrees with every test threshold decision.
+
+\subsection{Primary comparison arms}
+The six primary Adam arms are task-only continuation, raw Anchor-QDO, invariant Anchor-QDO, one matched-noise control for each geometry, and weakest-neuron reset. At every active step, a noise arm inherits its paired QDO donor's \emph{actual} auxiliary step norm. Raw noise is sampled within $\range(Q)$; invariant noise uses $D\phi(\theta_{\rm control})^\top Q\zeta$ and is normalized to the donor norm. This controls instantaneous norm and timing, not temporal coherence, cumulative displacement, or functional effect.
+
+The reset chooses $i=\arg\min_j |a_j|\norm{w_j}$, replaces $w_i$ with an independent random unit vector, and sets $a_i=0$. It is applied to all models, not only those later judged to fail. All arms use fresh optimizer state, so this comparison does not isolate optimizer-state effects during uninterrupted training.
+
+A predeclared sensitivity uses $\rho=1$ only for original width-four restart zero. A literal fixed-identity SGD family uses $\eta=0.03$ on the three width-four cohorts, restart zero, with ordinary, raw-QDO, matched-noise, and reset arms. The raw SGD update is a minibatch gradient step on $\ell_t+\lambda_0c_t\mathcal R$; this identity does not confer a nonsmooth nonconvex convergence guarantee.
+
+\subsection{Separately registered coherence diagnostics}
+After observing primary training progress, but before final held-out evaluation, an additional registration introduced two stronger controls. A fixed orthogonal transformation rotates the donor's complete force path. For raw QDO it acts within $\range(Q)$; for invariant QDO it acts in the full 36-dimensional parameter space. Rotation preserves every step norm, every temporal inner product, and cumulative auxiliary-displacement norms. The invariant rotation need not preserve exclusion of rescaling directions at the control's state.
+
+A second control fixes the donor's initial parameter-force direction and uses its time-varying norms. These are donor-path diagnostics, not standalone optimizers that can be run without producing a donor. Their computational costs must not be equated with independent base training. Eight donor condition replays, comprising 512 trial continuations, matched archived final parameters bit-for-bit.
+
+\subsection{Statistical unit and analysis budget}
+The archive contains 4,992 primary Adam, 768 primary SGD, 256 strength-sensitivity, and 1,024 coherence-control final models: 7,040 distinct condition-by-trial endpoints. The 512 donor replays are additional reproducibility checks, not independent endpoints. Source checkpoints and comparisons were not selected using final QDO test outcomes.
+
+For width-four paired comparisons, differences are first averaged across restarts within each original trial. A percentile bootstrap resamples the 64 trial clusters 20,000 times. The intervals describe variation within this task family, are exploratory and not multiplicity-adjusted, and do not treat 192 repeated continuations as 192 independent tasks.
+
+\section{Results}\label{sec:results}
+\subsection{Original width-four cohort}
+Table~\ref{tab:main} reports the main endpoint. The common warm-up already moves the original source from $56/64$ to $57/64$; that improvement is not credited to QDO. Ordinary continuation finishes at $57/64$ in each restart. Invariant QDO finishes at $62$, $61$, and $59$, with a mean NMSE reduction of $52.28\%$ relative to ordinary continuation. Its 11 additional successful continuations come from six distinct source checkpoints, with no paired regression in this cohort. Reset remains the stronger repair.
+
+\begin{table}[tb]
+\centering\small\setlength{\tabcolsep}{4pt}
+\input{tables/main.tex}
+\caption{Original width-four cohort. Each restart contains the same 64 original task/checkpoint identities; mean NMSE averages 192 endpoints. Values are recomputed from archived per-trial rows. Lower NMSE is better.}\label{tab:main}
+\end{table}
+
+\begin{figure}[tb]
+\centering\includegraphics[width=.97\linewidth]{figures/successes.pdf}
+\caption{Success counts across the original width-four cohort's three paired restarts. Shapes identify restarts. The rotated-path condition is a later diagnostic; it is not part of the original six-arm registration.}\label{fig:successes}
+\end{figure}
+
+The invariant method's mean NMSE gain over Adam is $0.00614016$, with trial-cluster interval $[0.00163758,0.01183608]$. The success-rate gain is $5.729$ percentage points, interval $[1.5625,10.9375]$. These gains compare matched continuations, not the original pre-warm-up checkpoints.
+
+\subsection{How much does coherence explain?}
+Table~\ref{tab:coherence} shows that a coherent rotated raw force trajectory achieves nearly the same results as raw QDO. Raw QDO's average error gain versus that control is slightly negative, $-0.00010615$. Thus improvement over independently randomized, norm-matched noise alone is insufficient to identify an advantage of the anchor-selected directions.
+
+Invariant QDO improves mean NMSE over the rotated invariant path by $0.00331835$, but its interval $[-0.00118394,0.00839825]$ includes zero. The rotation also changes its relationship to the rescaling directions, leaving a geometric mismatch. Table~\ref{tab:cluster} reports the principal paired intervals, including the positive comparison with a fixed initial direction. The evidence supports an effective Adam-side intervention while retaining uncertainty about the unique contribution of ongoing anchor feedback.
+
+\begin{table}[tb]
+\centering\small\setlength{\tabcolsep}{4pt}
+\input{tables/coherence.tex}
+\caption{Later coherence controls on the original width-four cohort. All use donor force norms and paired training streams. A fixed rotation preserves auxiliary path geometry but not necessarily its relation to the model's rescaling modes or task gradients.}\label{tab:coherence}
+\end{table}
+\begin{table}[tb]
+\centering\small\setlength{\tabcolsep}{4pt}
+\input{tables/cluster.tex}
+\caption{Exploratory paired NMSE gains, control minus target. Positive values favor the target. Bootstrap resampling is by original trial after averaging its three restarts.}\label{tab:cluster}
+\end{table}
+
+\subsection{Additional source cohorts, width checks, and negative arms}
+On fixed-data ordinary sources, invariant QDO achieves $59$, $59$, and $60$ successes, versus Adam's $56$, $57$, and $57$. On directional-guidance sources it achieves $53$, $53$, and $56$, versus $50$, $49$, and $49$. The latter comparison has 15 paired rescues and one regression. Its no-regression property in the original cohort is therefore not a general safety guarantee. The reset arm achieves $64/64$ throughout both additional small-model cohorts. Full tables appear in Appendix~\ref{app:tables}.
+
+The larger original widths mostly begin at a ceiling. Raw and invariant QDO finish at $64/64$ at widths six through sixteen in the single tested restart. Ordinary continuation at width sixteen falls to $63/64$, and reset to $62/64$. These are regression checks, not evidence for a new scaling law.
+
+The $\rho=1$ sensitivity does not increase QDO success counts over its primary setting: raw falls from $59$ to $58$, and invariant remains $62$. All matched sensitivity controls are retained in Appendix~\ref{app:tables}.
+
+The literal SGD raw-QDO variant improves none of the three source cohorts' success counts. This does not isolate a necessity for Adam: calibration uses the base optimizer's update norm. Among failing original branch states, median calibration norms are $0.0599980$ for Adam and $0.00164441$ for SGD, a factor of approximately $36.5$. Absolute auxiliary forces differ accordingly. Reset also performs poorly under this SGD budget. The negative result is specific to the implemented optimizer, calibration, and schedule.
+
+\section{What changed in the repaired computation?}\label{sec:mechanism}
+\subsection{Inspection of every final network}
+All 7,040 final models received raw, normalized, and output-weighted weight spectra; full-parameter Jacobian singular spectra on 256 fixed diagnostic inputs; analytic Gaussian parameter-Gram spectra; error-projection measurements; teacher-feature alignment; and task-space projection diagnostics. Teacher directions are used only after training for diagnosis, not to select anchors, projections, reset vectors, or update strengths. No new sparse autoencoder was fitted in this continuation study: earlier SAE reconstruction did not distinguish an adequate representation from an accurately reconstructed inadequate one \cite{artifactAnatomy,artifactDirectional}.
+
+In all 11 additional invariant-QDO successes from the original cohort, all four generating features align at cosine above $0.95$ with the required output sign. Effective output-weighted participation rank reaches four, one outgoing coefficient changes sign relative to the branch, and the measured first-projection error floor disappears to floating-point tolerance. The full-parameter Jacobian rank remains 32. This supports a changed feature decomposition rather than an increased parameter count or local rank.
+
+\subsection{Trial 3: recovery of a lost contrast}
+The previously examined original trial 3, restart zero, illustrates the mechanism. After ordinary continuation, its held-out NMSE is $0.102552$ and it resolves two generating features. It preserves only $1.2307\%$ of the negative pair's contrast despite preserving nearly all of their common direction. Invariant QDO resolves all four features and retains the full contrast. Held-out NMSE is approximately $1.03\times10^{-31}$; an analytic displayed zero is roundoff/cancellation, not an exact global proof of functional equality.
+
+The change is not monotonic (Figure~\ref{fig:contrast}). At steps $0,100,300,1000,1500$, contrast retention is approximately $0.830$, $0.204$, $0.040$, $0.99982$, and $1.0$. At step 1000, population NMSE is still $0.003278$, above the success threshold. Task-only learning after repulsion ends refines the newly useful decomposition. Figure~\ref{fig:spectrum} shows the final output-weighted spectrum.
+
+\begin{figure}[tb]
+\centering\includegraphics[width=.90\linewidth]{figures/contrast.pdf}
+\caption{Illustrative trajectory, original trial 3/restart zero. Retention is the squared norm of the task's unit contrast projected into the learned input span. The trajectory temporarily worsens before recovery. It was selected as an earlier inspected failure, not as a training-selection rule.}\label{fig:contrast}
+\end{figure}
+\begin{figure}[tb]
+\centering\includegraphics[width=.80\linewidth]{figures/spectrum.pdf}
+\caption{Final singular values of $W\diag(a)$ for the same example. This matrix is invariant to each neuron's positive input/output rescaling. The invariant-QDO repair recovers four contributions; full-parameter Jacobian rank remains 32 in all three conditions.}\label{fig:spectrum}
+\end{figure}
+
+For a pair collapsed by the original saved projection, the required output difference is $0.03848247$. Ordinary continuation predicts $0.00115941$; invariant QDO predicts $0.03848247$ and matches both individual answers to floating-point precision. The fixed-initial invariant-force control also repairs this example. It is therefore evidence for repair, not for the necessity of dynamically recomputing anchor directions in this particular trajectory.
+
+\subsection{Failures remain visible}
+The archive searches all 762 failed width-four endpoints for all-inactive hidden-state collisions. Returned witnesses are checked with exact rational interpretations of stored float64 weights and inputs. All have different teacher answers; 760 have answer gaps above $0.01$. Exactness applies to those witnesses for the stored tensors, not to the full distribution or the optimality of the witness search. These failures remain in the results rather than being excluded from the mechanism narrative.
+
+\section{Scaling and implementation feasibility}\label{sec:scaling}
+For $N$ acted-on parameters, $k$ projected coordinates, and $K$ anchors, feature construction and pullback cost $O(N)$; dense projection and back-projection cost $O(Nk)$; anchor interactions cost $O(Kk)$. A fixed geometry needs only the $Kk$ projected historical coordinates after construction. Full historical parameter checkpoints are retained for research provenance, not required by the force itself.
+
+A dense $Q$ requires $Nk$ scalars. At one billion parameters, float32 storage is $32$ GB for $k=8$ and $128$ GB for $k=32$, before ordinary optimizer state. This makes the literal dense whole-model projection unsuitable for routine single-device large-model training even though its cost is linear in $N$ for fixed $k$.
+
+Possible engineering changes include local complete-neuron blocks and implicit orthonormal projections. A disjoint-group signed basis can satisfy $Q^\top Q=I$ while supporting $O(N)$ application (Appendix~\ref{app:scaling}). These changes alter the search geometry and were not tested here. Likewise, the positive-homogeneity proof applies to the stated shallow ReLU parameterization; another activation or multilayer block requires its own symmetry derivation.
+
+A separate coverage issue persists even if storage is solved. For a uniformly random orthonormal $k$-subspace independent of a fixed vector $v\in\R^N$,
+\begin{equation}\label{eq:coverage}
+\E\norm{Q^\top v}^2=\frac{k}{N}\norm v^2.
+\end{equation}
+Keeping $k=8$ while increasing $N$ does not preserve the toy experiment's projected fraction. For invariant QDO, the parameter-space force image also changes with $D\phi(\theta)^\top$; Equation~\eqref{eq:coverage} concerns the fixed feature-space projection, not a complete model of optimization. No large-model throughput, memory benchmark, or capability result is claimed.
+
+Neuron recycling is cheaper to represent: one shallow unit changes $d+1$ parameters and a periodic weight-based scan is linear in the eligible weights. Its principal difficulty is protecting useful and rare functions while choosing replacements. QDO instead needs useful directions and anchor geometry. The present findings justify developing the invariant intervention, not abandoning the stronger reset comparator.
+
+\section{Related work}
+Adam supplies the adaptive task update \cite{adam}; the intervention is deliberately outside its moment estimates. Rescaling-aware optimization is established: Path-SGD constructs a path-normalized geometry respecting function-preserving weight rescaling \cite{pathsgd}. Here invariance belongs to the anchor penalty and not the complete update, an important difference from a claim of reparameterization-equivariant optimization.
+
+History-dependent Gaussian bias is also established. Metadynamics uses a history-dependent potential in collective coordinates to escape free-energy minima \cite{metadynamics}. The present method shares the idea of projected historical repulsion, but uses a fixed finite anchor set within each pulse, explicit strength decay, and supervised neural continuation rather than a free-energy reconstruction. Novelty of Gaussian repulsion itself is not claimed.
+
+ReDo recycles dormant neurons in deep reinforcement learning \cite{redo}; continual backpropagation selectively reinitializes less-used units to maintain plasticity in continual-learning experiments \cite{plasticity}. These motivate the reset comparator but are not implementations reproduced by this toy experiment's one-shot weakest-contribution reset. The analytic population evaluation uses Gaussian ReLU moments related to arc-cosine kernels \cite{arc}. The combined invariant historical penalty and its documented controls are the specific subject of this manuscript; it is not an exhaustive priority review.
+
+\section{Limitations and conclusions}\label{sec:limits}
+The experiment is restricted to continuation on one Gaussian teacher family, one hidden ReLU layer, and selected source checkpoints. Repeated restarts and related source cohorts are correlated. The method has not been demonstrated from scratch, in deep transformers, on natural language, or under an equal-compute large-model comparison. The projection is random, not the data-derived structure proposed earlier in the project.
+
+Raw and invariant penalties differ in their coordinates, bandwidths, pullback Jacobians, and calibrated coefficients, so their comparison does not identify a single causal contribution from rescaling removal. The strongest coherence comparison leaves an interval including zero and changes the relation to symmetry directions. The reset benchmark is stronger on the original smallest networks. Successful auxiliary steps need not improve the task monotonically, and one additional cohort contains a paired regression. The numerical normalization floor and possible small-norm conditioning need explicit treatment in any extended implementation.
+
+Within that scope, the evidence is positive and specific. An annealed, separately applied rescaling-invariant anchor force alongside Adam repairs additional small-network failures without changing their 36-parameter architecture or resetting units. Weight inspection links the repairs to recovered task contrasts and separately rectified features rather than larger Jacobian rank or merely changed weight scales. The result supports a concrete optimizer-side reorganization mechanism while preserving the distinction between an effective intervention and a unique explanation of model-size advantages.
+
+\paragraph{Preparation and attribution.}
+The original projected-anchor design is attributed to Jared Castorena's supplied Anchor-QDO material. The invariant feature map, fixed controller, and controlled tests are later project developments documented in the experiment archive. This manuscript was prepared with ChatGPT assistance for mathematical exposition, source auditing, and drafting. It is an author-review research draft, not a record of peer review. No additional model training was performed for manuscript preparation.
+
+\clearpage
+\appendix
+\section{Population evaluation and diagnostic definitions}\label{app:diagnostics}
+\subsection{Gaussian ReLU kernel and normalized error}
+For jointly standard normal $Z_1,Z_2$ with correlation $\rho$,
+\begin{equation}\label{eq:kappa}
+\kappa(\rho)=\E[\relu(Z_1)\relu(Z_2)]
+=\frac{\sqrt{1-\rho^2}+(\pi-\arccos\rho)\rho}{2\pi}.
+\end{equation}
+Consequently, for nonzero $w,v$,
+\begin{equation}
+K(w,v)=\norm w\norm v\,\kappa\left(\frac{w^\top v}{\norm w\norm v}\right).
+\end{equation}
+This standard Gaussian moment is the basis of the archived analytic calculation \cite{arc}. With block kernel matrices $K_{WW}$, $K_{Wq}$, and $K_{qq}$,
+\begin{equation}
+\E[(f_\theta-f_*)^2]=a^\top K_{WW}a-2a^\top K_{Wq}c+c^\top K_{qq}c.
+\end{equation}
+Dividing by Equation~\eqref{eq:var} produces population NMSE. The implementation clips small negative roundoff in this subtraction to zero. Near-perfect solutions are therefore checked using direct held-out errors as well; a printed zero is not an exact algebraic certificate.
+
+The held-out estimator uses 20,000 new Gaussian inputs per trial and the analytic target variance, not an estimated per-batch variance. All 7,040 archived endpoints have the same pass/fail outcome under held-out and analytic evaluation.
+
+\subsection{Input-span retention and fixed-projection error floor}
+Let $\Pi_W$ be the orthogonal projector onto $\range(W)$. The retained fraction of a unit input direction $v$ is
+\begin{equation}
+\mathcal C_W(v)=v^\top\Pi_Wv\in[0,1].
+\end{equation}
+For a same-sign target pair $q_i,q_j$, the common and contrast directions are $(q_i+q_j)/\sqrt2$ and $(q_i-q_j)/\sqrt2$. These are geometric quantities, not percentages of all information stored or probabilities of answering correctly.
+
+The best possible decoder of the fixed linear projection has risk
+\begin{equation}
+\inf_g\E[(f_*(x)-g(W^\top x))^2]
+=\E[\Var(f_*(x)\mid W^\top x)].
+\end{equation}
+For this Gaussian target, it is
+\begin{equation}\label{eq:bayes}
+c^\top\!\left[\kappa(q^\top q)-\kappa(q^\top\Pi_Wq)\right]c,
+\end{equation}
+where $\kappa$ is applied entrywise. To see this, use two independent Gaussian completions of $x$ conditional on $\Pi_Wx$. Their projected coordinates agree, and the cross-covariance of their teacher coordinates is $q^\top\Pi_Wq$. The cross moment equals the squared conditional-mean moment, giving Equation~\eqref{eq:bayes}. This is a lower bound imposed by a \emph{fixed learned projection}, not a capacity bound over all possible $W$ of that shape.
+
+\subsection{Contribution spectra and feature alignment}
+The output-weighted matrix $B=W\diag(a)$ is unchanged by positive per-neuron rescaling. For its singular values $s_j$, participation rank is
+\begin{equation}
+\operatorname{PR}(B)=\frac{\left(\sum_j s_j^2\right)^2}{\sum_j s_j^4}.
+\end{equation}
+It measures spectral concentration, not an integer count of concepts. Direct teacher alignment counts a target direction when a normalized neuron has cosine above $0.95$ and the required outgoing sign. It does not identify every possible distributed implementation of the target.
+
+\subsection{Full parameter Jacobian and its limits}
+Away from a gate boundary,
+\begin{equation}
+\frac{\partial f_\theta(x)}{\partial w_i}
+=a_i\mathbf1_{w_i^\top x>0}x,\qquad
+\frac{\partial f_\theta(x)}{\partial a_i}=\relu(w_i^\top x).
+\end{equation}
+The diagnostic $J_\theta$ includes derivatives with respect to \emph{every} trainable parameter. The study uses all its singular values on 256 fixed inputs, a relative numerical-rank cutoff of $10^{-10}$, and analytic population matrices
+\begin{equation}
+G=\E[J_\theta(x)^\top J_\theta(x)],\quad
+b=\E[J_\theta(x)^\top(f_*(x)-f_\theta(x))].
+\end{equation}
+For residual energy $E_r=\E[(f_*-f_\theta)^2]$, the available unrestricted first-order correction fraction is $b^\top G^+b/E_r$ when numerically resolvable. It is not the fraction removed by an actual Adam step. The earlier study used a 512-input finite Jacobian; its sampled values must not be conflated with this study's 256-input calculation.
+
+The $H$ disjoint rescaling vectors $\xi_i$ are linearly independent when $w_i\ne0$, and $J_\theta\xi_i=0$. Hence $\rank(J_\theta)\le N-H=dH$; at width four this upper bound is 32. Success and failure at rank 32 are therefore compatible with the same redundancy structure. Analytic expectations cover the full stated Gaussian input distribution at a checkpoint, not the entire space of possible training trajectories.
+
+\section{Additional result tables}\label{app:tables}
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{4pt}\input{tables/fixed_plain.tex}
+\caption{Fixed-dataset ordinary source checkpoints, width four. All continuations themselves use fresh Gaussian examples.}\label{tab:fixedplain}
+\end{table}
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{4pt}\input{tables/fixed_direction.tex}
+\caption{Fixed-dataset directional-guidance source checkpoints, width four. These share nominal teachers with the other cohorts.}\label{tab:fixeddirection}
+\end{table}
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{5pt}\input{tables/widths.tex}
+\caption{Original source cohorts, restart zero. All six primary Adam arms are shown. Larger widths are predominantly ceiling/regression checks.}\label{tab:widths}
+\end{table}
+\begin{table}[H]
+\centering\small\setlength{\tabcolsep}{6pt}\input{tables/sgd.tex}
+\caption{Literal identity-metric SGD, restart zero. Raw QDO improves no success count. Each force is calibrated relative to its own base optimizer, so absolute force scales differ from the Adam experiment.}\label{tab:sgd}
+\end{table}
+\begin{table}[H]
+\centering\small
+\begin{tabular}{lrr}
+\toprule
+Strength sensitivity, original width four/restart zero & Successes & Mean NMSE\\
+\midrule
+Raw QDO, $\rho=1$ & 58/64 & 0.01013408\\
+Matched raw noise, $\rho=1$ & 56/64 & 0.01181500\\
+Invariant QDO, $\rho=1$ & 62/64 & 0.00343597\\
+Matched invariant noise, $\rho=1$ & 57/64 & 0.01176501\\
+\bottomrule
+\end{tabular}
+\caption{Predeclared sensitivity outside the primary $\rho=0.25$ setting. It does not replace the primary outcome.}\label{tab:strength}
+\end{table}
+
+\section{Further mathematical and scaling observations}\label{app:scaling}
+\subsection{Finite repulsion does not guarantee task descent}
+The annealing sequence satisfies $\sum_{t=1}^{1000}c_t=500.5$. If the factor multiplying $K/(\tau\sqrt e)$ in Equation~\eqref{eq:bound} is bounded by $C$ during the active period, then
+\begin{equation}
+\sum_{t=1}^{1000}\norm{\eta\lambda_0c_tF(\theta_{t-1})}
+\le 500.5\,\eta\lambda_0 C\frac{K}{\tau\sqrt e}.
+\end{equation}
+This bounds auxiliary path length under the stated condition, not task loss or exploration quality. On a locally smooth region with gradient-Lipschitz constant $L$, a combined displacement $s=d^{\rm Adam}+\eta\lambda_0c_tF$ obeys
+\begin{equation}
+\ell(\theta+s)\le\ell(\theta)+\inner{\nabla\ell(\theta)}s+\frac L2\norm s^2.
+\end{equation}
+The linear term can have either sign. ReLU gate crossings require separate treatment; the smooth bound is not silently applied across arbitrary nonsmooth transitions. The original design's assumptions about a coercive smooth objective and fixed-metric descent are not inherited by this nonconvex ReLU/Adam implementation.
+
+\subsection{An implicit orthonormal projection}
+Partition parameter-feature indices into disjoint nonempty groups $G_1,\ldots,G_k$ and choose signs $s_i\in\{-1,+1\}$. Set
+\begin{equation}
+Q_{ij}=\begin{cases}s_i/\sqrt{|G_j|},&i\in G_j,\\0,&i\notin G_j.\end{cases}
+\end{equation}
+Disjoint support and unit column norms give $Q^\top Q=I_k$. Projection and back-projection require one contribution per parameter, or $O(N)$ work. Stored assignments cost $O(N)$, or can be generated reproducibly; anchor state is still $O(Kk)$. This retains the formal projected penalty while changing its subspace distribution. It is a feasibility construction, not an evaluated replacement.
+
+For a dense local block of $n_b$ parameters, the corresponding cost is $O(n_bk+Kk)$ and basis memory is $n_bk$ scalars. Updating selected blocks with reused workspace avoids storing a dense basis for every block simultaneously. Changing a block's geometry requires compatible historical coordinates or a new anchor collection. A general dense preconditioner would add quadratic costs and was not used.
+
+\subsection{Why fixed small subspaces do not preserve coverage}
+Rotational symmetry implies $\E[QQ^\top]=(k/N)I$ for a uniformly random orthonormal subspace, proving Equation~\eqref{eq:coverage}. With $N=36$, $k=8$ is a substantial fraction of the ambient space. That fraction is very small at billion-parameter scale. Neither an implicit implementation nor rescaling projected distances restores components in $\ker Q^\top$. Locality or informed directions are possible responses, but remain distinct experimental changes.
+
+\section{Provenance, audit, and reproducibility}\label{app:provenance}
+\subsection{Source lineage and historical claims}
+The supplied Anchor-QDO lyrics specify a projected Gaussian penalty, historical anchors, preconditioning, and strength annealing. A screenshot displays October 6, 2025; this is a provenance observation, not an independently verified publication or priority certificate. The controller verse is truncated. The frozen settings in this experiment and the map in Equation~\eqref{eq:phi} are documented later adaptations, not reconstructed missing historical settings.
+
+The main archive is \texttt{anchor\_qdo\_results.zip}, with source code, reports, checkpoints, and compact diagnostics. Full donor force paths are separately archived as \texttt{anchor\_qdo\_force\_paths.zip}. Those traces support the coherence analysis, but are not runtime optimizer state. The manuscript source bundle includes the tables' per-trial data, registrations, report copies, and an audit ledger; full retraining uses the original experiment archive rather than a substituted initialization generator.
+
+\subsection{Checks made for this manuscript}
+All 1,194 entries in the main archive's SHA-256 manifest matched. The 7,040 per-trial rows and 7,040 anatomy rows were checked for endpoint count consistency. Cluster bootstrap point estimates and intervals were recomputed from the per-trial rows using the archived resampling seed and matched the saved summary to numerical tolerance. All test/population threshold decisions agreed. Saved-state norm inspection is reported in Section~\ref{sec:floor}. A separate, non-training formula check compared the archived pullback with autograd on random nonzero states (maximum discrepancy $6.67\times10^{-16}$), checked rescaling-force orthogonality and inverse-transpose covariance, and numerically checked the stated force bound. These checks are recorded separately from experiment results. No training, full-model re-evaluation, or donor replay was rerun during manuscript preparation.
+
+The source report contains small decimal inconsistencies between its rounded main table and nearby prose (for example, $0.0117456$ versus the per-trial mean $0.0117455309$). This manuscript uses machine-readable per-trial values and records the difference in \texttt{evidence/manuscript\_audit.json}; source reports are preserved unchanged.
+
+\subsection{Recorded checks during the original experiment}
+Before main training, manual forces were compared with autograd and finite differences; the largest force/autograd discrepancy was below $2\times10^{-15}$. Manual Adam matched PyTorch Adam within $5\times10^{-16}$ in its implementation check. Center-zero, invariant-feature, force-orthogonality, and matched-step-norm checks passed. The measured initial raw-force squared norm fraction in rescaling directions was $0.13341698$ on the original restart-zero cohort, versus approximately $3.99\times10^{-33}$ for the invariant force. This tests geometry, not a causal percentage of the performance gain.
+
+The continuation study used Python 3.13.5, PyTorch 2.10.0+cpu, and NumPy 2.3.5 on CPU. Tool-timeout interruption and deterministic resumption are recorded. Registrations were hashed before their respective execution phases, but local hashes are not independent trusted timestamps. The coherence registration followed inspection of primary training progress and is explicitly labeled as such.
+
+\subsection{Teacher-bank exactness audit}
+An initial attempt to verify older exact collision certificates with the fresh teacher bank failed its exact rational equality. The historical directional teacher weights differ from the fresh bank by at most $7.21645\times10^{-16}$, although they represent the same nominal seeded construction. Exact dyadic identities cannot substitute approximately equal tensors. The recorded verifier was corrected to use the appropriate historical bank; the failed attempt was retained.
+
+All new continuations used the fresh bank equally across paired methods. Subsequently, 3,072 fixed-source endpoints were re-evaluated with their historical bank: no success identity changed and the largest change in a condition's mean NMSE was $6.94\times10^{-18}$. This is an evaluation robustness check, not a claim that training trajectories would be bitwise identical under different target tensors.
+
+\subsection{Reproduction entry points}
+The original archive's \texttt{README.md} specifies a fresh-output-directory workflow for running \texttt{test\_core.py}, \texttt{launch.py}, \texttt{coherence.py}, \texttt{evaluate.py}, \texttt{anatomy.py}, \texttt{collision\_check.py}, \texttt{teacher\_bank\_check.py}, and \texttt{summarize.py}. Existing completion markers intentionally skip completed training and must not be mistaken for new runs. All checkpoint loads in the supplied workflow use PyTorch's \texttt{weights\_only=True}. Library and platform differences can change long nonlinear training trajectories.
+
+For the paper alone, \texttt{latexmk -pdf anchor\_qdo\_paper.tex} builds the PDF from the included source, bibliography, tables, and figures. The preparation ledger lists original archive and source hashes; the paper package has its own final SHA-256 manifest. An AI assistant is not listed as a research author. Human author review is required before submission, and no venue, publication status, registration service, or public dataset release is invented.
+
+\clearpage
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\end{document}
