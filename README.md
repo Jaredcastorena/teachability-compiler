@@ -58,6 +58,25 @@ The compiler can exploit the opening regime and detect when a fixed greedy polic
 
 See [`results/RUNG_AB_REPORT.md`](results/RUNG_AB_REPORT.md) for the consolidated Rung A+B tables and analysis.
 
+## Related finding: recovering collapsed features without increasing model size
+
+A separate controlled continuation study in the same broader research program asks whether some small-model failures are capacity failures or **feature-allocation failures** produced by the training trajectory.
+
+In a bias-free \(8\!\to\!H\!\to\!1\) ReLU teacher-student system, the target is exactly representable at the smallest tested width, \(H=4\). Starting from the same width-four checkpoints and continuing training for three paired restarts:
+
+- ordinary Adam succeeds on `57/64` trials in each restart;
+- rescaling-invariant Anchor-QDO succeeds on `62/64`, `61/64`, and `59/64`;
+- mean held-out NMSE falls from `0.01174553` to `0.00560537`;
+- the 11 additional successful continuations come from six source checkpoints and recover all four generating features **without adding parameters or resetting neurons**.
+
+The mechanism is visible in the learned representation. In the additional Anchor-QDO successes, all four generating features are recovered with the required output sign, effective output-weighted participation reaches four, and the measured first-projection error floor disappears to floating-point tolerance, while the full-parameter Jacobian rank remains 32. In an illustrative failed checkpoint, ordinary continuation preserves only about `1.23%` of a required feature contrast, whereas invariant Anchor-QDO recovers the full contrast.
+
+The result is deliberately narrower than a claim of optimizer superiority. Weakest-neuron reset remains the stronger repair benchmark, a rotated-force-path control explains part of the gain, and the strongest Anchor-QDO-versus-rotated-path interval includes zero. The demonstrated result is therefore an **effective optimizer-side reorganization mechanism on this synthetic task family**, not a general convergence theorem or large-model scaling result.
+
+This complements the Teachability Compiler result from the optimizer side: training outcome depends not only on what a model can represent, but on the state and trajectory through which learning arrives there.
+
+Source: [`docs/anchor_qdo_paper.tex`](docs/anchor_qdo_paper.tex) — *Rescaling-Invariant Anchor-QDO on Adam: History-repulsive continuation for recovering collapsed ReLU features*.
+
 ## Current research verdict
 
 | Hypothesis | Verdict |
@@ -151,6 +170,7 @@ A chunk can therefore be:
 - [`docs/RESEARCH_SPEC.md`](docs/RESEARCH_SPEC.md) — mathematical formulation and research hypotheses.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — proposed system components and data flow.
 - [`docs/EXPERIMENT_PLAN.md`](docs/EXPERIMENT_PLAN.md) — staged experiments, baselines, metrics, and ablations.
+- [`docs/anchor_qdo_paper.tex`](docs/anchor_qdo_paper.tex) — Anchor-QDO manuscript on optimizer-side recovery of collapsed ReLU features.
 - [`AGENTS.md`](AGENTS.md) — implementation brief and frozen research contracts.
 - [`src/teachability_compiler/`](src/teachability_compiler/) — typed simulator, planner, real learner, and experiment implementations.
 - [`tests/`](tests/) — synthetic, persistence, simulator, decision-validity, and compiler smoke tests.
