@@ -1,0 +1,286 @@
+\section{Grid overlaps, rotations, and full-reconstruction limits}
+\label{app:grids}
+
+These calculations arose during the discussion. They delimit what weighted
+overlap alone can guarantee and explain why full serialization is not the main
+proposal.
+
+\subsection{Independent real-valued grids}
+
+Flatten each grid to \(X_\ell\in\R^{81}\). For
+\[
+ Y=\sum_{\ell=0}^{K-1}w_\ell X_\ell,
+\]
+the measurement matrix is
+\[
+ M=[\,w_0I_{81}\ \cdots\ w_{K-1}I_{81}\,].
+\]
+If at least one weight is nonzero, \(\rank M=81\), hence
+\(\dim\ker M=81(K-1)\). For two nonzero weights, explicit collisions are
+\[
+ X_i'=X_i+w_jT,\qquad X_j'=X_j-w_iT.
+\]
+The changes cancel in \(Y\). A sufficiently small nonzero \(T\) also gives
+collisions in the interior of bounded value ranges. Different weights cannot
+remove this linear ambiguity. A linear representation of \(K\) independent
+continuous grids needs at least \(K\) scalar-grid output channels.
+
+\subsection{A weighted shadow with retained contrasts}
+
+For positive weights, retain
+\[
+ S=\sum_{\ell=0}^{K-1}w_\ell X_\ell,\qquad
+ D_\ell=X_\ell-X_0,\quad 1\le\ell<K.
+\]
+Let \(W=\sum_\ell w_\ell\). Substituting \(X_\ell=X_0+D_\ell\) gives
+\[
+ S=WX_0+\sum_{\ell=1}^{K-1}w_\ell D_\ell,
+\]
+so the inverse is
+\[
+ X_0=\frac{S-\sum_{\ell=1}^{K-1}w_\ell D_\ell}{W},
+ \qquad X_\ell=X_0+D_\ell.
+\]
+There are \(K\) channels, and the signed contrasts must not be clipped.
+
+A well-conditioned alternative is \(y=Qx\) at each cell, where \(Q\) is
+orthogonal and its first row is \(w^\top/\norm w_2\). Then
+\[
+ x=Q^\top y,\qquad \norm{Qx}_2=\norm x_2,\qquad \kappa_2(Q)=1.
+\]
+For \(a=w/\norm w_2\ne e_0\), an explicit completion is
+\[
+ v=e_0-a,\qquad Q=I-\frac{2vv^\top}{v^\top v}.
+\]
+Direct multiplication gives \(Q^\top=Q\), \(Q^2=I\), and \(Qe_0=a\),
+so its first row is \(a^\top\). If \(a=e_0\), use \(Q=I\).
+These are exact-real constructions, not bitwise floating-point guarantees.
+
+\subsection{Known quarter-turn copies of one source}
+
+Let \(R\) be the exact \(90^\circ\) rotation permutation of the grid, so
+\(R^4=I\). For ordered layers \(X,RX,R^2X,R^3X\) and increasing weights
+\(1,2,4,8\), set
+\begin{equation}
+ Y=\frac{X+2RX+4R^2X+8R^3X}{15}.
+ \label{eq:rotation}
+\end{equation}
+Multiplication yields
+\[
+ (2R-I)(I+2R+4R^2+8R^3)=16R^4-I=15I,
+\]
+and therefore
+\begin{equation}
+ \boxed{X=2RY-Y.}
+\end{equation}
+The descending convention
+\((8X+4RX+2R^2X+R^3X)/15\) instead has inverse \(X=2Y-RY\).
+Coefficient order and inverse must remain paired.
+
+For any \(r>1\),
+\[
+ T_r=\frac{I+rR+r^2R^2+r^3R^3}{1+r+r^2+r^3},
+ \qquad
+ T_r^{-1}=\frac{rR-I}{r-1}.
+\]
+Indeed,
+\((rR-I)(I+rR+r^2R^2+r^3R^3)=(r^4-1)I\),
+and \(r^4-1=(r-1)(1+r+r^2+r^3)\).
+
+A \(9\times9\) grid has one fixed center and twenty four-cell orbits.
+The rotation eigenvalues \(1,-1,i,-i\) therefore have multiplicities
+\(21,20,20,20\). Since \(R\) is an orthogonal permutation, a polynomial
+in \(R\) is normal, and its singular values are the magnitudes of its
+eigenvalues. At \(r=2\) they are
+\[
+ 1\ (21\text{ times}),\qquad
+ 1/\sqrt5\ (40\text{ times}),\qquad
+ 1/3\ (20\text{ times}).
+\]
+Thus the condition number is \(3\), and
+\(\norm{(2R-I)\varepsilon}_2\le3\norm{\varepsilon}_2\).
+The same factor bounds maximum cell error by the triangle inequality.
+More generally,
+\(\kappa_2(T_r)=(r+1)/(r-1)\), because the largest and smallest
+inverse magnitudes occur at the rotation eigenvalues \(-1\) and \(1\).
+
+Equal averaging \((I+R+R^2+R^3)/4\) retains only one average per orbit,
+so it has rank \(21\) and nullity \(60\). For arbitrary four weights, the
+map is invertible on this grid exactly when
+\[
+ p(t)=w_0+w_1t+w_2t^2+w_3t^3
+\]
+is nonzero at \(1,-1,i,-i\). Strictly increasing positive weights satisfy
+this: \(p(1)>0\), \(p(-1)=(w_0-w_1)+(w_2-w_3)<0\), and
+\[
+ p(i)=(w_0-w_2)+i(w_1-w_3)\ne0.
+\]
+They can still be poorly conditioned as they approach equal weighting.
+
+For original eight-bit cells, store the unnormalized integer
+\[
+ N=X+2RX+4R^2X+8R^3X.
+\]
+Its cells lie in \([0,3825]\), so 12 bits suffice per output cell.
+The inverse \(X=(2RN-N)/15\) is exact on valid codes with sufficiently
+wide integer intermediates; each numerator is divisible by 15.
+
+There is only one source grid's worth of independent unknowns here.
+The result cannot encode four independent real-valued grids into one.
+Quarter-turn permutations, known orientation convention, and known transform
+order are assumptions. Arbitrary-angle interpolation or cropping needs
+separate analysis. The map is rotation-equivariant, \(T_rR=RT_r\), rather
+than rotation-invariant. Discarding orientation while asking to recover it
+would require additional pose information.
+
+\subsection{Exact positional packing for a finite alphabet}
+
+For original \(b\)-bit unsigned values, let \(q=2^b\) and
+\(x_\ell\in\{0,\ldots,q-1\}\). Define
+\begin{equation}
+ C=\sum_{\ell=0}^{K-1}q^\ell x_\ell,\qquad
+ x_\ell=\left\lfloor C/q^\ell\right\rfloor\bmod q.
+ \label{eq:radix}
+\end{equation}
+The contribution from the highest differing position \(j\) differs by
+at least \(q^j\). The greatest possible opposing lower contribution is
+\[
+ (q-1)\sum_{i<j}q^i=q^j-1.
+\]
+It cannot cancel the higher difference. Division and reduction modulo \(q\)
+then give the stated inverse.
+
+For arbitrary scalar weights, injectivity on this alphabet is equivalent to
+\[
+ \sum_\ell w_\ell\delta_\ell\ne0
+ \quad\text{for every nonzero integer }\delta
+ \text{ with }|\delta_\ell|\le q-1.
+\]
+A collision gives such a difference vector. Conversely, every such difference
+is realized by \(x_\ell=\max(\delta_\ell,0)\) and
+\(y_\ell=\max(-\delta_\ell,0)\).
+A sufficient dominance condition is
+\[
+ w_j>(q-1)\sum_{i<j}w_i,\qquad w_0>0.
+\]
+The highest-position argument proves it. It is not necessary: binary
+weights \(2,3,4\) have eight distinct subset sums even though the last
+weight does not exceed the sum of the earlier two.
+
+Represent a variable-depth ordered stack by \((C,K)\). Placing stack \(B\)
+above \(A\) gives
+\[
+ (C_A,K_A)\star(C_B,K_B)
+ =\bigl(C_A+q^{K_A}C_B,\ K_A+K_B\bigr).
+\]
+Both groupings of three stacks have code
+\[
+ C_A+q^{K_A}C_B+q^{K_A+K_B}C_C,
+\]
+which proves associativity. Given the lower split depth, reduction modulo
+\(q^{K_A}\) and integer division recover the two blocks.
+Appending a new upper layer uses \(C_{\rm new}=C+q^Kx_{\rm new}\);
+the update \(qC+x_{\rm new}\) instead makes older layers heavier.
+
+Depth must be retained because a zero upper layer changes no value code.
+Grouping boundaries and source identities require metadata if they count as
+information. Values outside the digit range create carries:
+\((q,0)\) and \((0,1)\) encode identically. Known unequal digit ranges
+admit mixed-radix weights \(w_\ell=\prod_{j<\ell}q_j\), with their bases
+available to the decoder.
+
+\subsection{Capacity and brightness precision}
+
+There are \(q^K=2^{Kb}\) independent cell stacks. A fixed-length lossless code
+therefore needs at least \(Kb\) bits per cell, or \(81Kb\) bits for the grid,
+excluding metadata. A single spatial grid can carry the stack only by
+increasing precision or retaining additional state. Positional packing meets
+this payload count exactly.
+
+\Needspace{12\baselineskip}
+For \(K\ge1\), normalize the integer code to \(z=C/(q^K-1)\), and write
+\(M=q^K-1\). Adjacent valid brightness levels are separated by
+\(\Delta=1/M\). With exact scaling and rounding, decoding by
+\[
+ \widehat C=\operatorname{round}(M\widehat z)
+\]
+is guaranteed when
+\[
+ |\widehat z-z|<\frac1{2M}.
+\]
+If the implemented scaled value is \(M\widehat z+\delta\), a sufficient
+condition including that arithmetic error is
+\[
+ M|\widehat z-z|+|\delta|<\frac12.
+\]
+For four eight-bit layers and exact decoding arithmetic, the normalized
+error threshold is about \(1.16415\times10^{-10}\).
+For any \(N\) distinct scalar codes in \([0,1]\), the \(N-1\) gaps sum to
+at most one, so the minimum gap is at most \(1/(N-1)\).
+Alternative weights cannot remove that fixed-range robustness limit.
+
+This is a full-reconstruction reference and a capacity check.
+Quantizing original floating-point values into new eight-bit shades is not
+lossless. Preserving original floating-point bit patterns requires their full
+stored bits, including sign and exponent. Such packing does not automatically
+give a useful numerical representation for learning.
+
+\section{ReLU, reversible computation, and numerical exactness}
+\label{app:arithmetic}
+
+For real scalars, \((\rho(x),\rho(-x))\) recovers \(x\).
+A related bound applies to one bias-free layer
+\(h(x)=\rho(Ax)\) on all of \(\R^n\): global injectivity requires at least
+\(2n\) output coordinates \cite{injective}. Ignore identically zero rows
+and choose a generic point away from the hyperplanes of the nonzero rows.
+Active rows must span \(n\) dimensions for local injectivity.
+At \(-x\), the complementary nonzero rows must also span \(n\).
+There must therefore be at least \(2n\) rows. Pairing the identity and
+negative identity attains the bound. It does not impose the same requirement
+on every architecture, restricted domain, or target-specific encoding.
+
+\Needspace{12\baselineskip}
+ReLU can occur inside a larger invertible operation. For example,
+\[
+ u=A+F(B),\qquad v=B+G(u)
+\]
+has inverse
+\[
+ B=v-G(u),\qquad A=u-F(B).
+\]
+The functions \(F,G\) themselves need not be invertible. Additive coupling is
+a standard construction in invertible networks \cite{nice}. Its full carried
+state retains the dimensions needed for the inverse; it does not compress
+arbitrary new independent inputs into insufficient capacity.
+
+Algebraic reversibility is distinct from bitwise reversibility. IEEE float32
+has 24 significand bits and float64 has 53 \cite{ieee}. With ordinary
+round-to-nearest,
+\[
+ \operatorname{float32}(2^{24}+1)
+ =\operatorname{float32}(2^{24}),
+\]
+and the analogous binary64 collision occurs at \(2^{53}+1\).
+A floating-point additive coupling can therefore map different inputs to the
+same stored output even though its real-arithmetic formula has an inverse.
+
+For unnormalized integer-valued radix codes, all \(Kb\)-bit payloads are
+representable in float32 if \(Kb\le24\), and in float64 if \(Kb\le53\),
+with sufficient exponent range and exact intermediate operations.
+Correctly implemented unsigned \(Kb\)-bit integer storage retains the entire
+payload. Original float32 payloads require 32 stored bits each, not merely
+their 24-bit significands.
+
+For fixed-width integer states and deterministic integer-valued maps
+\(F,G\) on the appropriate finite state spaces, modular coupling
+\[
+ u=(A+F(B))\bmod M,\qquad v=(B+G(u))\bmod M
+\]
+has an exact inverse by modular subtraction. Integer bijective flows provide
+a related discrete approach \cite{idf}. Wraparound changes the monotone
+darkness interpretation, and training a discrete transformation needs its own
+analysis.
+
+Report three different claims separately: algebraic target sufficiency,
+stability at a stated error level, and bitwise recovery when actually required.
+The selective architecture is not granted the last claim by the first.

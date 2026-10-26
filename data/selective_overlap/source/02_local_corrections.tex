@@ -1,0 +1,391 @@
+\section{Exact overlap corrections for rectified sums}
+\label{loc:section}
+
+The first constructive case turns the overlapping-shadow idea into an exact
+local record. A merge can preserve a common component while removing a
+contrast that still matters to the target. The proposal is to identify that
+missing contribution before the merge and make it available where the
+adjacent computation needs it. This formalizes the selective interpretation
+developed in the discussion~\cite{discussion}. The results below concern
+specified functions and real arithmetic; they do not assume that a learned
+selector already knows which features to preserve.
+
+\subsection{Projection loss and rectification loss are different}
+\label{loc:two_losses}
+
+Write $\rho(t)=\ReLU(t)=\max(t,0)$. A linear projection $P$ loses every
+distinction in its kernel: $P(x+v)=Px$ whenever $Pv=0$. Rectification can then
+lose further distinctions because all nonpositive preactivations produce
+zero. These are separate operations, with separate requirements for a repair.
+
+The CReLU construction retains the positive and negative parts of a
+measurement~\cite{crelu}:
+\begin{equation}
+ \CReLU(z)=
+ \begin{pmatrix}\rho(z)\\\rho(-z)\end{pmatrix},
+ \qquad z=\rho(z)-\rho(-z).
+ \label{loc:crelu_inverse}
+\end{equation}
+It therefore preserves the supplied measurement $z$. If $z=Px$, the identity
+does not recover a component of $x$ already removed by $P$.
+
+In the motivating pair collapse, let
+\begin{equation}
+ S=A+B,\qquad D=A-B,\qquad
+ H=\rho(S),\qquad F=\rho(A)+\rho(B).
+ \label{loc:pair_definition}
+\end{equation}
+Here $D$ is a contrast lost by the sum. The inputs $(1,-1)$ and $(0,0)$ both
+have $S=0$, so even $\CReLU(S)$ gives the same record. Their required targets
+are nevertheless $1$ and $0$. This is the distinction identified in the
+earlier projection example~\cite{projection}. A record intended to preserve
+it must branch before the sum removes it. Merely branching before the
+subsequent ReLU is too late.
+
+\subsection{The cancellation correction}
+\label{loc:pair_correction}
+
+\begin{proposition}[Exact local correction]
+\label{loc:pair_prop}
+For every $A,B\in\R$, define
+\begin{equation}
+ \kappa(A,B)=\rho(A)+\rho(B)-\rho(A+B).
+ \label{loc:kappa_definition}
+\end{equation}
+Then $F=H+\kappa(A,B)$, and the following formulas are equivalent:
+\begin{align}
+ \kappa(A,B)
+ &=\frac{|A|+|B|-|A+B|}{2}
+ \label{loc:kappa_absolute}\\
+ &=\frac12\rho\bigl(|D|-|S|\bigr)
+ \label{loc:kappa_contrast}\\
+ &=\begin{cases}
+       0,&AB\ge0,\\
+       \min(|A|,|B|),&AB<0.
+    \end{cases}
+ \label{loc:kappa_gate}
+\end{align}
+In particular, $\kappa$ is nonnegative.
+\end{proposition}
+
+\begin{proof}
+Use $\rho(t)=(t+|t|)/2$ in \eqref{loc:kappa_definition}. The linear terms
+cancel, giving \eqref{loc:kappa_absolute}; the triangle inequality gives
+nonnegativity. If $A,B$ have the same sign, $|S|=|A|+|B|\ge|D|$. If their
+signs differ, $|D|=|A|+|B|\ge|S|$. Hence
+\[
+ |A|+|B|=\max(|S|,|D|),
+\]
+which yields \eqref{loc:kappa_contrast}. In the opposite-sign case,
+$|S|=\bigl||A|-|B|\bigr|$, so
+\[
+ \kappa=\frac{|A|+|B|-\bigl||A|-|B|\bigr|}{2}
+        =\min(|A|,|B|).
+\]
+The same-sign case gives zero, including either input being zero.
+\end{proof}
+
+The gate identifies precisely when the collapsed sum loses a contribution
+needed by this target. A binary gate alone is insufficient: the missing
+amount varies. The record $\kappa$ supplies that amount. Conditional on the
+retained value $H$, the transformations $F=H+\kappa$ and $\kappa=F-H$ are
+inverse. Thus this record contains exactly the missing target value
+conditional on $H$, without specifying which input supplied the positive
+contribution or reconstructing the original pair.
+
+Keeping a signed contrast alongside a rectified sum is a different proposal,
+and does not suffice in general. The following collision has strictly
+negative sums:
+\begin{center}
+\begin{tabular}{rrrrrr}
+\toprule
+$A$&$B$&$S$&$H$&$D$&$F$\\
+\midrule
+$1$&$-4$&$-3$&$0$&$5$&$1$\\
+$2$&$-3$&$-1$&$0$&$5$&$2$\\
+\bottomrule
+\end{tabular}
+\end{center}
+The retained pair $(H,D)$ is identical while the target differs. Retaining
+$(S,D)$ would recover $A=(S+D)/2$ and $B=(S-D)/2$. For this symmetric target,
+$(S,|D|)$ also suffices. The correction $(H,\kappa)$ provides a more direct
+statement of what the target requires. None of these facts establishes a
+computational advantage for one implementation.
+
+The distinction between a gate and a record can also be checked on a whole
+family of inputs. Set $(A,B)=(t,-t)$ for $0<t<1$. Every member has $H=0$ and
+the same opposite-sign gate, but its target and correction are both $t$.
+An exact record must distinguish these target values; a flag saying that
+cancellation occurred cannot do so. Conversely, $(t,-t)$ and $(-t,t)$ have
+opposite signed contrasts but the same target. This target does not require
+the record to distinguish them. The example identifies what must vary in
+the record without demanding preservation of an unnecessary distinction.
+
+\subsection{Repairing the original four-feature teacher}
+\label{loc:teacher_repair}
+
+In the motivating QDO setup, write the four intrinsic teacher features as
+$u_1,\ldots,u_4$. The teacher is~\cite{qdo}
+\begin{equation}
+ f_\star(x)=
+ \frac{-\rho(u_1)+\rho(u_2)-\rho(u_3)+\rho(u_4)}{2}.
+ \label{loc:teacher}
+\end{equation}
+Group the features by their output coefficient sign. Define
+\begin{align}
+ S_+&=u_2+u_4,&\kappa_+&=\kappa(u_2,u_4),\\
+ S_-&=u_1+u_3,&\kappa_-&=\kappa(u_1,u_3).
+\end{align}
+Applying Proposition~\ref{loc:pair_prop} to each pair gives the exact repair
+\begin{equation}
+ \boxed{
+ f_\star(x)=
+ \underbrace{\frac{\rho(S_+)-\rho(S_-)}{2}}_{f_{\rm pair}(x)}
+ +\frac{\kappa_+-\kappa_-}{2}.}
+ \label{loc:teacher_repair_identity}
+\end{equation}
+Indeed, the positive pair contributes $\rho(S_+)+\kappa_+$ and the negative
+pair contributes $-\rho(S_-)-\kappa_-$. Adding them and dividing by two
+reproduces every term of \eqref{loc:teacher}. Each local record is
+nonnegative; their contribution to the scalar output has the teacher's
+signed coefficients.
+
+This construction identifies sufficient information for the collapsed-pair
+example without requiring recovery of all eight ambient input coordinates.
+It is an oracle construction when the teacher features $u_j$ are supplied.
+A student that has not learned those features cannot calculate these exact
+records from an already collapsed representation. Accordingly, an oracle
+repair experiment establishes sufficiency of the proposed information;
+learning an adequate record remains a separate empirical question. Supplying
+the teacher features to a record branch must be disclosed as additional
+information in any comparison.
+
+\subsection{Position weights and signed readouts}
+\label{loc:weights}
+
+Suppose the required pair target assigns known positive position weights:
+\[
+ F_\alpha=\alpha_0\rho(A)+\alpha_1\rho(B),
+ \qquad 0<\alpha_0<\alpha_1.
+\]
+The later or upper position receives the larger weight. Positive homogeneity,
+$\rho(\alpha A)=\alpha\rho(A)$ for $\alpha>0$, allows the substitutions
+$u=\alpha_0A$ and $v=\alpha_1B$. Therefore
+\begin{equation}
+ F_\alpha=
+ \rho(\alpha_0A+\alpha_1B)+\kappa(\alpha_0A,\alpha_1B).
+ \label{loc:ordered_pair}
+\end{equation}
+The common/contrast formulas apply to these weighted inputs. The weights
+belong to positions if moving a layer is intended to change its influence.
+This target can distinguish some reorderings, but it does not promise to
+distinguish every ordering of the original data.
+
+Negative output coefficients require care because
+$\rho(\alpha A)=\alpha\rho(A)$ generally fails for $\alpha<0$.
+For arbitrary real $\alpha,\beta$, set
+\[
+ T=\alpha\rho(A)+\beta\rho(B),\qquad S=\alpha A+\beta B.
+\]
+Expansion of the same ReLU identity yields
+\begin{equation}
+ T=\rho(S)+R_{\alpha,\beta},\qquad
+ R_{\alpha,\beta}
+ =\frac{\alpha|A|+\beta|B|-|\alpha A+\beta B|}{2}.
+ \label{loc:signed_pair}
+\end{equation}
+For example, $\alpha=1$, $\beta=-1$, $A=1$, $B=2$ gives $T=-1$, a zero
+rectified base, and correction $-1$. A general signed readout therefore
+cannot be represented by an unqualified nonnegative correction rule.
+
+\subsection{Arbitrary finite piles and exact local merging}
+\label{loc:multiple}
+
+Consider a fixed finite collection $u_1,\ldots,u_K$, where positive
+position weights may already have been absorbed into the $u_i$. The required
+target is $F_K=\sum_i\rho(u_i)$. Choose any binary merge tree. Each leaf
+retains its signed value; each internal node $v$ computes
+\[
+ S_v=S_{v,L}+S_{v,R},\qquad
+ \kappa_v=\kappa(S_{v,L},S_{v,R}).
+\]
+The child sums must remain signed until this operation has used them.
+
+\begin{theorem}[Telescoping local corrections]
+\label{loc:telescoping}
+For every such tree,
+\begin{equation}
+ F_K=\rho(S_{\rm root})+
+          \sum_{v\text{ internal}}\kappa_v.
+ \label{loc:telescope_equation}
+\end{equation}
+\end{theorem}
+\begin{proof}
+Expand each internal record as
+$\kappa_v=\rho(S_{v,L})+\rho(S_{v,R})-\rho(S_v)$.
+Every nonroot internal node appears once as a child, with a positive term,
+and once as a parent, with a negative term. These terms cancel. The remaining
+terms are the rectified leaves minus the rectified root, proving the claim.
+For one leaf the internal sum is empty and the identity also holds.
+\end{proof}
+
+The records need not all remain separate when only this aggregate is needed.
+A subtree can carry a signed sum $S$ and accumulated correction $R$. Define
+\begin{equation}
+ (S_L,R_L)\star(S_R,R_R)=
+ \bigl(S_L+S_R,\ R_L+R_R+\kappa(S_L,S_R)\bigr).
+ \label{loc:merge_operator}
+\end{equation}
+Leaves start at $(u_i,0)$. This gives a constant number of scalar fields;
+their required numerical range can still grow with the number and weights
+of the leaves.
+
+\Needspace{11\baselineskip}
+\begin{proposition}[Mass coordinates and the merge law]
+\label{loc:mass_coordinates}
+Let $P=\sum_i\rho(u_i)$ and $N=\sum_i\rho(-u_i)$. Then
+\begin{equation}
+ S=P-N,\quad R=\min(P,N),\qquad
+ P=\rho(S)+R,\quad N=\rho(-S)+R.
+ \label{loc:mass_inverse}
+\end{equation}
+The merge \eqref{loc:merge_operator} is associative and commutative, with
+identity $(0,0)$.
+\end{proposition}
+\begin{proof}
+If $P\ge N$, then $S=P-N\ge0$ and $R=N$, giving both inverse formulas.
+If $P<N$, then $S<0$ and $R=P$, again giving them. These formulas establish a
+bijection between $(P,N)\in\R_{\ge0}^2$ and $(S,R)\in\R\times\R_{\ge0}$.
+Combining two subtrees adds their $P$ and $N$ separately. The resulting
+correction is
+\begin{align*}
+ R_{\rm new}
+ &=P_L+P_R-\rho(S_L+S_R)\\
+ &=R_L+R_R+\rho(S_L)+\rho(S_R)-\rho(S_L+S_R),
+\end{align*}
+which is exactly \eqref{loc:merge_operator}. Thus the merge is ordinary
+addition in $(P,N)$ coordinates. Associativity, commutativity, and the
+identity follow from addition.
+\end{proof}
+
+These algebraic properties hold in real arithmetic. Floating-point
+implementations can depend on merge order: even the positive leaves
+\((10^{16},1,1)\) yield different binary64 sums under the two
+parenthesizations.
+
+One immediate consequence connects the correction directly to rectified
+sign channels:
+\begin{equation}
+ \boxed{
+ \sum_i\CReLU(u_i)
+ =\CReLU\!\left(\sum_i u_i\right)
+   +\begin{pmatrix}R\\R\end{pmatrix}.}
+ \label{loc:crelu_mass}
+\end{equation}
+The accumulated positive and negative masses differ from rectifying the
+final signed sum by the same cancellation amount in both channels.
+The individual seam corrections depend on the merge tree, but their total
+$R$ does not.
+
+Commutativity is an explicit limit on the record. The final $(S,R)$ does not
+retain the original order: $(1,-1)$ and $(-1,1)$ both yield $(0,1)$. Position
+weights can make a specified ordered target respond to a permutation;
+source labels and transition direction must remain available when the
+subsequent computation requires them. Neither weights nor this two-field
+summary guarantee arbitrary future queries. In particular, changing the
+readout weights after aggregation can require distinctions no longer
+present.
+
+It is useful to distinguish the information needed for the current output
+from a state that supports a specified later operation. The pair
+$(H,\kappa)$ gives the current target, whereas the merge rule deliberately
+carries the signed $S$. For example, the subtree states $(S,R)=(-1,0)$ and
+$(-3,0)$ have the same current positive mass, zero, and the same
+$(\rho(S),R)$. A later request for $\rho(S+2)$ produces $1$ and $0$,
+respectively. The signed sum is necessary for that additional request.
+If the only request remains the sum of individually rectified leaves, one
+can instead accumulate their positive mass directly. The appropriate state
+therefore depends on the operations that will actually follow the overlap.
+The explicit $(S,R)$ merge is closed under the signed-sum updates defined
+here; its closure does not extend automatically to a new nonlinear readout,
+a new set of position weights, or an unspecified future computation.
+
+\paragraph{Signed leaf coefficients.}
+For the more general target $\sum_i a_i\rho(A_i)$, initialize
+\begin{equation}
+ S_i=a_iA_i,\qquad
+ R_i=a_i\rho(A_i)-\rho(a_iA_i)
+ =\begin{cases}0,&a_i\ge0,\\a_i|A_i|,&a_i<0.\end{cases}
+ \label{loc:signed_leaf}
+\end{equation}
+The negative case follows by writing $a_i=-c$, $c>0$, and using
+$\rho(A_i)+\rho(-A_i)=|A_i|$. At every merge,
+\[
+ \rho(S_L+S_R)+R_{\rm new}
+ =\rho(S_L)+R_L+\rho(S_R)+R_R.
+\]
+Induction therefore recovers the signed target exactly at the root. Here
+$R$ may be negative. Omitting the leaf corrections would instead compute
+$\sum_i\rho(a_iA_i)$, a different function.
+
+The aggregate considered here can already be computed by directly summing
+the rectified leaves. The derivation supplies an exact local accounting
+mechanism for a collapsed representation, not evidence of a new efficient
+algorithm. Its architectural value must be tested when records are learned
+and transported across the actual transitions of interest.
+
+\subsection{Numerical and backward-pass qualifications}
+\label{loc:implementation}
+
+The local correction itself has a simple stability property. Let
+$\mathcal C=\{(A,B):AB\ge0\}$, the union of the two same-sign quadrants.
+Then
+\begin{equation}
+ \kappa(A,B)=\operatorname{dist}_{\infty}\bigl((A,B),\mathcal C\bigr).
+ \label{loc:distance}
+\end{equation}
+For opposite signs, reaching $\mathcal C$ requires moving at least one
+coordinate to zero. Moving the smaller-magnitude coordinate attains
+distance $\min(|A|,|B|)$; either coordinate change is a lower bound for
+reaching its respective quadrant. Points already in $\mathcal C$ have
+distance zero. This proves the identity. Distance to a fixed set is
+one-Lipschitz, so perturbing both inputs by at most $\varepsilon$ changes
+the ideal correction by at most $\varepsilon$. This is a property of the
+function, not a guarantee that every algebraic implementation evaluates it
+accurately.
+
+Equivalent real formulas need not behave identically in finite precision.
+For $A=-10^{20}$ and $B=1$, the mathematical correction is $1$. In binary64
+arithmetic, \eqref{loc:kappa_absolute} can evaluate to zero because the
+subtractions lose the small difference. The sign-gated minimum in
+\eqref{loc:kappa_gate} returns $1$ for this example. Implement its gate with
+sign comparisons rather than the product $AB$, which can overflow. This
+avoids a particular subtraction error; signed sums, accumulated records,
+and final reconstruction still require numerical error checks.
+
+Forward identities also need a stated backward convention. Differentiating
+an exact correction through its source variables gives matching ordinary
+derivatives away from activation boundaries. Explicitly, when $A$, $B$, and
+$S$ are nonzero,
+\begin{equation}
+ \frac{\partial\kappa}{\partial A}
+ =\mathbf1_{A>0}-\mathbf1_{S>0},\qquad
+ \frac{\partial\kappa}{\partial B}
+ =\mathbf1_{B>0}-\mathbf1_{S>0}.
+ \label{loc:gradient}
+\end{equation}
+Adding the derivatives of $H$ cancels the common $S$ terms and recovers the
+two derivatives of $F$. Thus the exact source-dependent record restores the
+derivatives of this specified function as well as its values at these
+points. Detaching the record, replacing
+it with an approximation, or choosing a different boundary convention can
+change training. For example, the exact function
+$\rho(z)-\rho(-z)=z$ has derivative one, but automatic differentiation with
+$\rho'(0)=0$ on both branches computes zero at $z=0$. The absolute-value
+version of the pair correction can also produce a wrong derivative for the
+complete target at an internal cancellation boundary. At \(A=1,B=-1\),
+using \(|\cdot|'(0)=\rho'(0)=0\) gives the automatic derivative
+\((1/2,-1/2)\) for \(H+\kappa\), while the smooth target \(F\) has
+gradient \((1,0)\). If preservation of a specified training signal is required,
+that signal and its backward convention must be included in the contract
+and verified explicitly.

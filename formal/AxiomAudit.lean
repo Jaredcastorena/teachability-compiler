@@ -1,0 +1,71 @@
+module
+
+import SelectiveOverlap
+
+/-! Axiom dependencies of every public theorem in the two new proof modules.
+This list records the declarations checked for this research import. -/
+
+#print axioms SelectiveOverlap.preservesTarget_iff_exists_range_decoder
+#print axioms SelectiveOverlap.preservesTarget_of_factorization
+#print axioms SelectiveOverlap.target_factorizations_comp
+#print axioms SelectiveOverlap.preservesTarget_comp
+#print axioms SelectiveOverlap.preservesTarget_with_side_record
+#print axioms SelectiveOverlap.preservesTarget_before_postprocessing
+#print axioms SelectiveOverlap.not_preservesTarget_of_collision
+#print axioms SelectiveOverlap.ker_le_iff_preservesTarget
+#print axioms SelectiveOverlap.exists_linear_range_decoder_of_ker_le
+#print axioms SelectiveOverlap.ker_le_iff_exists_linear_range_decoder
+#print axioms SelectiveOverlap.range_le_ker_iff_agreement_zero
+#print axioms SelectiveOverlap.compatible_record_has_source
+#print axioms SelectiveOverlap.compatible_record_has_unique_target
+#print axioms SelectiveOverlap.Counterexample.diagonalRecords_agree
+#print axioms SelectiveOverlap.Counterexample.diagonalRecords_cover_compatible
+#print axioms SelectiveOverlap.Counterexample.diagonalRecords_lose_target
+#print axioms SelectiveOverlap.Counterexample.diagonalRecords_have_no_target_decoder
+#print axioms SelectiveOverlap.relu_zero
+#print axioms SelectiveOverlap.relu_of_nonneg
+#print axioms SelectiveOverlap.relu_of_nonpos
+#print axioms SelectiveOverlap.relu_nonneg
+#print axioms SelectiveOverlap.self_le_relu
+#print axioms SelectiveOverlap.relu_sub_neg
+#print axioms SelectiveOverlap.crelu_signed_inverse
+#print axioms SelectiveOverlap.relu_add_neg
+#print axioms SelectiveOverlap.two_mul_relu
+#print axioms SelectiveOverlap.relu_eq_half
+#print axioms SelectiveOverlap.correction_reconstruct
+#print axioms SelectiveOverlap.correction_nonneg
+#print axioms SelectiveOverlap.correction_abs
+#print axioms SelectiveOverlap.correction_comm
+#print axioms SelectiveOverlap.correction_zero_left
+#print axioms SelectiveOverlap.correction_zero_right
+#print axioms SelectiveOverlap.correction_of_nonneg
+#print axioms SelectiveOverlap.correction_of_nonpos
+#print axioms SelectiveOverlap.correction_of_nonneg_nonpos
+#print axioms SelectiveOverlap.correction_of_nonpos_nonneg
+#print axioms SelectiveOverlap.correction_gate
+#print axioms SelectiveOverlap.abs_common_contrast
+#print axioms SelectiveOverlap.correction_contrast
+#print axioms SelectiveOverlap.relu_mul_nonneg
+#print axioms SelectiveOverlap.positive_weighted_repair
+#print axioms SelectiveOverlap.signed_correction_abs
+#print axioms SelectiveOverlap.signed_correction_reconstruct
+#print axioms SelectiveOverlap.leaf_correction_of_nonneg
+#print axioms SelectiveOverlap.leaf_correction_of_nonpos
+#print axioms SelectiveOverlap.four_teacher_repair
+#print axioms SelectiveOverlap.correction_cocycle
+#print axioms SelectiveOverlap.merge_assoc
+#print axioms SelectiveOverlap.merge_comm
+#print axioms SelectiveOverlap.merge_zero_left
+#print axioms SelectiveOverlap.merge_zero_right
+#print axioms SelectiveOverlap.merge_reconstruct
+#print axioms SelectiveOverlap.merge_signed_leaves
+#print axioms SelectiveOverlap.OrderedTree.summary_node
+#print axioms SelectiveOverlap.OrderedTree.positive_telescope
+#print axioms SelectiveOverlap.OrderedTree.signed_sum_eq_mass_difference
+#print axioms SelectiveOverlap.OrderedTree.negative_telescope
+#print axioms SelectiveOverlap.OrderedTree.crelu_mass_identity
+#print axioms SelectiveOverlap.OrderedTree.total_correction_eq_min_masses
+#print axioms SelectiveOverlap.OrderedTree.total_correction_nonneg
+#print axioms SelectiveOverlap.crelu_after_sum_counterexample
+#print axioms SelectiveOverlap.clipped_sum_contrast_counterexample
+#print axioms SelectiveOverlap.merge_order_counterexample

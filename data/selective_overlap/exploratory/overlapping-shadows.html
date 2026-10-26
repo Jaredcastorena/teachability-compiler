@@ -1,0 +1,93 @@
+<div id="overlapping-shadows-explainer">
+  <style>
+    #overlapping-shadows-explainer .shadow-panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+    #overlapping-shadows-explainer figure { margin: 0; min-width: 0; }
+    #overlapping-shadows-explainer figcaption { margin-bottom: 8px; color: var(--foreground); font-weight: 500; }
+    #overlapping-shadows-explainer svg { display: block; width: 100%; height: auto; }
+    #overlapping-shadows-explainer .shade { fill: var(--foreground); transition: fill-opacity 180ms ease; }
+    #overlapping-shadows-explainer .grid-base { fill: var(--muted); }
+    #overlapping-shadows-explainer .shadow-meta { margin-top: 12px; color: var(--muted-foreground); }
+    #overlapping-shadows-explainer .shadow-status { margin-top: 12px; color: var(--foreground); }
+    @media (max-width: 420px) { #overlapping-shadows-explainer .shadow-panels { gap: 8px; } }
+    @media (prefers-reduced-motion: reduce) { #overlapping-shadows-explainer .shade { transition: none; } }
+  </style>
+  <h3>Overlapping a 9 × 9 noise grid</h3>
+  <div class="viz-controls" role="group" aria-label="Shadow weights">
+    <button type="button" class="btn" data-mode="equal" aria-pressed="true">Equal darkness</button>
+    <button type="button" class="btn" data-mode="weighted" aria-pressed="false">Weighted darkness</button>
+  </div>
+  <div class="shadow-meta text-small" data-weights>0°: 1 · 90°: 1 · 180°: 1 · 270°: 1</div>
+  <div class="shadow-panels">
+    <figure>
+      <figcaption>Original</figcaption>
+      <svg data-grid="original" viewBox="0 0 180 180" role="img" aria-label="Original random grid with 81 independent intensities from zero to one"></svg>
+    </figure>
+    <figure>
+      <figcaption>Overlap</figcaption>
+      <svg data-grid="overlay" viewBox="0 0 180 180" role="img" aria-label="Normalized overlap of four clockwise rotations"></svg>
+    </figure>
+    <figure>
+      <figcaption data-result-label>Orbit means</figcaption>
+      <svg data-grid="recovered" viewBox="0 0 180 180" role="img" aria-label="Recoverable orbit averages; the individual original values are unresolved"></svg>
+    </figure>
+  </div>
+  <div class="shadow-status tabular-nums" role="status" aria-live="polite" data-status>21 of 81 independent values retained</div>
+  <div class="shadow-meta text-small">Intensity 0–1 · Exact 90° rotations · Unrounded arithmetic</div>
+  <script>
+    (() => {
+      const root = document.getElementById('overlapping-shadows-explainer');
+      const ns = 'http://www.w3.org/2000/svg';
+      let seed = 523481;
+      const original = Array.from({length: 81}, () => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+        return seed / 4294967296;
+      });
+      const rotate = a => Array.from({length: 81}, (_, i) => {
+        const row = Math.floor(i / 9), col = i % 9;
+        return a[(8 - col) * 9 + row];
+      });
+      const views = [original];
+      for (let k = 1; k < 4; k++) views.push(rotate(views[k - 1]));
+      const grids = {};
+      for (const name of ['original', 'overlay', 'recovered']) {
+        const svg = root.querySelector('[data-grid="' + name + '"]');
+        const base = document.createElementNS(ns, 'rect');
+        base.setAttribute('width', '180'); base.setAttribute('height', '180');
+        base.setAttribute('class', 'grid-base'); svg.appendChild(base);
+        grids[name] = Array.from({length: 81}, (_, i) => {
+          const rect = document.createElementNS(ns, 'rect');
+          rect.setAttribute('x', String((i % 9) * 20 + 1));
+          rect.setAttribute('y', String(Math.floor(i / 9) * 20 + 1));
+          rect.setAttribute('width', '18'); rect.setAttribute('height', '18');
+          rect.setAttribute('class', 'shade');
+          svg.appendChild(rect); return rect;
+        });
+      }
+      function paint(name, data) {
+        data.forEach((value, i) => grids[name][i].setAttribute('fill-opacity', String(value)));
+      }
+      function update(mode) {
+        const weighted = mode === 'weighted';
+        const weights = weighted ? [8, 4, 2, 1] : [1, 1, 1, 1];
+        const divisor = weighted ? 15 : 4;
+        const overlay = original.map((_, i) => views.reduce((s, v, k) => s + weights[k] * v[i], 0) / divisor);
+        const rotatedOverlay = rotate(overlay);
+        const recovered = weighted ? overlay.map((v, i) => 2 * v - rotatedOverlay[i]) : overlay;
+        paint('original', original); paint('overlay', overlay); paint('recovered', recovered);
+        root.querySelector('[data-weights]').textContent = weighted
+          ? '0°: 8 · 90°: 4 · 180°: 2 · 270°: 1'
+          : '0°: 1 · 90°: 1 · 180°: 1 · 270°: 1';
+        root.querySelector('[data-result-label]').textContent = weighted ? 'Recovered' : 'Orbit means';
+        root.querySelector('[data-grid="recovered"]').setAttribute('aria-label', weighted
+          ? 'Original random grid recovered from the weighted overlap to floating point precision'
+          : 'Recoverable orbit averages; the individual original values are unresolved');
+        root.querySelector('[data-status]').textContent = weighted
+          ? '81 of 81 independent values retained · Recovery error below 10⁻¹⁵'
+          : '21 of 81 independent values retained';
+        root.querySelectorAll('[data-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mode === mode)));
+      }
+      root.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => update(button.dataset.mode)));
+      update('equal');
+    })();
+  </script>
+</div>

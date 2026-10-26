@@ -1,0 +1,7 @@
+/source/*.aux
+/source/*.fdb_latexmk
+/source/*.fls
+/source/*.log
+/source/*.out
+/source/*.toc
+/source/proposal.pdf

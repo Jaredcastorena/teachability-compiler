@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "research_id": "selective_overlap",
+  "document_version": "1.0",
+  "proposal_date": "2026-10-25",
+  "repository_import_date": "2026-10-26",
+  "scope": "Current proposal and supporting derivations, code, deterministic results, and exploratory illustration; not historical training datasets or checkpoints.",
+  "artifacts": [
+    {
+      "path": ".gitattributes",
+      "role": "Preserve PDF and ZIP bytes as binary Git artifacts",
+      "size_bytes": 26,
+      "sha256": "d573c6c667f2992cf4289e5520e4f2a3ca34181d28b6b170027a1be50e7572db",
+      "origin": "repository_import_documentation"
+    },
+    {
+      "path": ".gitignore",
+      "role": "Exclude generated document build products",
+      "size_bytes": 113,
+      "sha256": "198c765a6f711294324134a8422c7623fdd41d8b98a59c8cc4952b3006710904",
+      "origin": "repository_import_documentation"
+    },
+    {
+      "path": "README.md",
+      "role": "Research archive index and provenance",
+      "size_bytes": 5160,
+      "sha256": "5b20dd4448ca9ebed88ac3976b4b096e095ebe76f3efb32eef000105b816cf02",
+      "origin": "repository_import_documentation"
+    },
+    {
+      "path": "exploratory/overlapping-shadows.html",
+      "role": "Exploratory known-rotation single-source illustration",
+      "size_bytes": 5615,
+      "sha256": "6c96eac3fb7dbb27842a109c2142d3e34bd81270344c3a5621a3109c296d1965",
+      "origin": "earlier_conversation_illustration"
+    },
+    {
+      "path": "selective_overlap_proposal.pdf",
+      "role": "Research proposal, working draft 1.0",
+      "size_bytes": 476582,
+      "sha256": "0ead10bb1116d2e6d25f0f136034983a4b4ae12946fc83491ef07c2097363e67",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "selective_overlap_source.zip",
+      "role": "Original delivered editable source bundle",
+      "size_bytes": 52628,
+      "sha256": "5865111fb699177fd0f0f7b8ba98e2ad8cda6314b9e6e858785466a5f2e34434",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/01_origin_and_contract.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 12917,
+      "sha256": "fe85591bef1d79eef89cc49838dcf5bcbd61096237e99bf021dcab3dbab37d8c",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/02_local_corrections.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 16789,
+      "sha256": "7878bb5c1788bf5a3befd6cbef4ed530e36817b3c17508432fc16359a86efbe7",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/03_atlas_reconstruction.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 18637,
+      "sha256": "37f173000b5f0925aa23e66755e7f1608b07fcb6695744bb79f2fa7bbb6bb3de",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/04_implementation_and_evaluation.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 16241,
+      "sha256": "590b656bccb9263283575b423bedf435b5bc8954e2fb267481b2dd6d3bc3cfd1",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/05_qdo_derivations.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 17271,
+      "sha256": "fae012bc552a2da1b79e3b8bedd52ec049ce4f0c93000510757d3bf32bc90d1d",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/06_grid_and_precision_limits.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 10972,
+      "sha256": "e66e9ae005fd96e52136ae98ba3c6d230a9b0c26fcfb7e07ade5e1a43daaac44",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/07_references.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 2788,
+      "sha256": "2b531bb46c08ced6924c831f61d26a2cca560af81604dc30754338a4e1894d1c",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/README.txt",
+      "role": "Original source-bundle build instructions",
+      "size_bytes": 2244,
+      "sha256": "52ff0b6ae9633d88792feaa40b849a9fcd53b9e09c8b90ff8789929d56a9c91e",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/figures/architecture.pdf",
+      "role": "Vector architecture diagram",
+      "size_bytes": 2879,
+      "sha256": "47413b7eb1ec17e1ad557cffd1fbdae1baabfdbe3c8eaa9c5c34db8f0472d8e7",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/make_figure.py",
+      "role": "Vector figure generation source",
+      "size_bytes": 2137,
+      "sha256": "13c286f0c5e77520f7220efd90eb53f9be31f3502400c68c84f64413fbb3f25e",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/proposal.tex",
+      "role": "Editable LaTeX proposal source",
+      "size_bytes": 2956,
+      "sha256": "e015e61f0c7303bf1c617acc0f316344a88ce6ddd08c749f7f455d8eaea423d2",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/verification_results.json",
+      "role": "Saved deterministic mathematical-check results",
+      "size_bytes": 5560,
+      "sha256": "44a1ba36553efd9627e4ce0948b4dd5cddd36d7f84dc134161d8fb1a76a3c55c",
+      "origin": "original_proposal_bundle_v1.0"
+    },
+    {
+      "path": "source/verify_math.py",
+      "role": "Deterministic mathematical verification script",
+      "size_bytes": 12931,
+      "sha256": "f70f3673ab22f13c0c7f453b9c173bee645a9650ef6177b10eb970997dee9cf7",
+      "origin": "original_proposal_bundle_v1.0"
+    }
+  ],
+  "verification": {
+    "python_check_groups": 8,
+    "status": "passed",
+    "reproduced_results_byte_identical": true,
+    "zip_source_entry_count": 13,
+    "zip_extracted_source_byte_identical": true
+  },
+  "formalization": {
+    "origin": "New for this repository import; absent from original proposal bundle",
+    "directory": "../../formal/",
+    "status_file": "../../formal/verification_status.json",
+    "status_file_sha256": "bda7d9c52dfbc78805299d8c487d895c765ee749db5d4aa7509d557af1db36c2",
+    "public_theorems_checked": 64
+  },
+  "license_notice": "../../LICENSE-NOTICE.md"
+}

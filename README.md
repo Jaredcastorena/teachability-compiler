@@ -167,6 +167,8 @@ A chunk can therefore be:
 
 ## Repository map
 
+- [data/selective_overlap/](data/selective_overlap/) — Selective Overlap Records proposal, editable source, deterministic mathematical checks, and exploratory rotation illustration.
+- [formal/](formal/) — pinned Lean project and scoped formal verification of the selective-overlap core, alongside the earlier coalition-game proof.
 - [`docs/RESEARCH_SPEC.md`](docs/RESEARCH_SPEC.md) — mathematical formulation and research hypotheses.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — proposed system components and data flow.
 - [`docs/EXPERIMENT_PLAN.md`](docs/EXPERIMENT_PLAN.md) — staged experiments, baselines, metrics, and ablations.

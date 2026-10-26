@@ -1,0 +1,251 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "arithmetic": "Integers and exact Fractions, except explicitly labeled floating-point counterexamples",
+  "scope": "Finite verification supports the algebraic derivations; no neural training, efficiency, or generalization claim is tested",
+  "checks": {
+    "two_input_identities": {
+      "domain": "A,B are integers from -8 through 8",
+      "input_pairs": 289,
+      "distinct_retained_h_and_correction_pairs": 53,
+      "checked": [
+        "absolute-value identity",
+        "common/contrast identity",
+        "mixed-sign gate and minimum magnitude",
+        "target reconstruction",
+        "positive/negative mass identity",
+        "target constancy on retained-record fibers in this finite domain"
+      ],
+      "passed": true
+    },
+    "arbitrary_signed_coefficients": {
+      "domain": "alpha,beta,A,B are integers from -3 through 3",
+      "coefficient_input_quadruples": 2401,
+      "checked": [
+        "general signed coefficient correction",
+        "negative-coefficient leaf correction",
+        "merge with signed leaf records"
+      ],
+      "passed": true
+    },
+    "positive_position_weights": {
+      "weights": [
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          4
+        ]
+      ],
+      "input_domain": "A,B are integers from -3 through 3",
+      "weighted_input_pairs": 294,
+      "convention": "The second position receives the larger positive weight",
+      "passed": true
+    },
+    "original_four_feature_teacher": {
+      "teacher": "f=(-ReLU(u1)+ReLU(u2)-ReLU(u3)+ReLU(u4))/2",
+      "pairing": {
+        "positive_output_pair": [
+          2,
+          4
+        ],
+        "negative_output_pair": [
+          1,
+          3
+        ]
+      },
+      "domain": "u1,u2,u3,u4 are integers from -3 through 3",
+      "input_quadruples": 2401,
+      "arithmetic": "The equality for twice f is checked with integers",
+      "scope": "Four intrinsic teacher coordinates; this check does not train an eight-dimensional-input student",
+      "passed": true
+    },
+    "multiple_merge_telescope": {
+      "domain": "Five integer leaves, each from -2 through 2",
+      "stacks": 3125,
+      "ordered_full_binary_groupings_per_stack": 14,
+      "tree_evaluations": 43750,
+      "checked": [
+        "all five-leaf binary groupings yield the same (S,R)",
+        "telescoping target reconstruction",
+        "sum CReLU(leaves) equals CReLU(S)+(R,R)"
+      ],
+      "passed": true
+    },
+    "insufficient_records": {
+      "clipped_sum_plus_signed_contrast": {
+        "inputs": [
+          [
+            1,
+            -4
+          ],
+          [
+            2,
+            -3
+          ]
+        ],
+        "retained": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            5
+          ]
+        ],
+        "targets": [
+          1,
+          2
+        ]
+      },
+      "crelu_after_the_sum": {
+        "inputs": [
+          [
+            1,
+            -1
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "retained": [
+          [
+            0,
+            0
+          ],
+          [
+            0,
+            0
+          ]
+        ],
+        "targets": [
+          1,
+          0
+        ]
+      },
+      "pairwise_products_do_not_determine_triple_parity": {
+        "inputs": [
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            -1,
+            -1,
+            -1
+          ]
+        ],
+        "pairwise_records": [
+          [
+            1,
+            1,
+            1
+          ],
+          [
+            1,
+            1,
+            1
+          ]
+        ],
+        "triple_targets": [
+          1,
+          -1
+        ],
+        "scope": "An illustrative record ambiguity, not a claim about every atlas transition map"
+      },
+      "passed": true
+    },
+    "selected_linear_measurement": {
+      "P": [
+        [
+          1,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "V_and_chosen_U": [
+        [
+          1,
+          -1,
+          0,
+          0
+        ]
+      ],
+      "rank_P": 2,
+      "rank_stacked_P_V": 3,
+      "minimum_added_linear_measurements": 1,
+      "domain": "Four integer coordinates, each from -2 through 2",
+      "inputs": 625,
+      "unrecovered_nuisance_coordinate_witness": [
+        [
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1
+        ]
+      ],
+      "scope": "The base map is linear and unrectified; the rank criterion alone is not sufficient for a rectified base",
+      "passed": true
+    },
+    "finite_precision": {
+      "float32_collision": {
+        "distinct_integers": [
+          16777216,
+          16777217
+        ],
+        "same_stored_value": 16777216.0
+      },
+      "float64_collision": {
+        "distinct_integers": [
+          9007199254740992,
+          9007199254740993
+        ],
+        "same_stored_value": 9007199254740992.0
+      },
+      "subtractive_roundoff": {
+        "inputs": [
+          -1e+20,
+          1.0
+        ],
+        "mathematical_correction": 1,
+        "absolute_value_formula_in_float64": 0.0,
+        "sign_gated_minimum_in_float64": 1.0
+      },
+      "passed": true
+    }
+  }
+}

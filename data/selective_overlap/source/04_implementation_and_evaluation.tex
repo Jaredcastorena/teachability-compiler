@@ -1,0 +1,347 @@
+\section{A neural implementation to test}
+\label{sec:architecture}
+
+\subsection{Selected measurements before the first destructive operation}
+
+At boundary \(\ell\), define \(h_\ell\) to be the state \emph{before} the
+operation that could erase the chosen distinction. The ordinary path is
+\[
+ h_{\ell+1}=F_\ell(h_\ell),
+\]
+for example \(F_\ell(h_\ell)=\rho(P_\ell h_\ell)\). A candidate protected
+record is
+\begin{equation}
+ r_\ell=\CReLU(U_\ell h_\ell).
+ \label{eq:selectivecrelu}
+\end{equation}
+The selected signed measurement is recovered by
+\[
+ U_\ell h_\ell=(r_\ell)_+-(r_\ell)_-.
+\]
+A projection with \(k\) independent rows creates \(k\) signed measurements
+and \(2k\) nonnegative CReLU channels. Count both correctly when comparing
+activation budgets.
+
+Because the record branches before \(F_\ell\), it can retain a contrast that
+the ordinary projection would remove. If \(h_\ell=Px\), every subsequent
+\(U_\ell h_\ell\) is identical on inputs having the same \(Px\). It cannot
+separate an admissible pair that differs in a target-relevant nullspace
+direction unless another retained observation already distinguishes that pair.
+Record placement must precede the first
+relevant loss, rather than merely preceding the final rectifier.
+
+The retained collection can be written
+\[
+ E(x)=\left(h_L(x),
+ \{(\ell,k_\ell,r_\ell(x)):\ell\in\mathcal B\}\right),
+\]
+where \(k_\ell\) is a chart or branch identity when needed and
+\(\mathcal B\) is the set of protected boundaries. Known shared transition
+parameters need not be copied into every input record. Input-dependent
+selection and map choices must be interpretable by the decoder.
+
+This protects selected measurements, not automatically the target. The
+requirement at a boundary remains
+\[
+ (F_\ell(h),r_\ell(h))=(F_\ell(h'),r_\ell(h'))
+ \Longrightarrow T_\ell(h)=T_\ell(h'),
+\]
+including other persistent records whenever \(T_\ell\) depends on them.
+An exact correction quantity can sometimes replace selected signed
+measurements, as in the ReLU example. A learned approximate correction needs
+its own error analysis.
+
+\subsection{An end-to-end linear audit}
+
+For a linear chain \(h_{\ell+1}=A_\ell h_\ell\), \(h_0=x\), with records
+\(r_\ell=N_\ell h_\ell\), the final observation matrix is
+\begin{equation}
+ \mathcal M_L=
+ \begin{bmatrix}
+ A_{L-1}\cdots A_0\\
+ N_0\\
+ N_1A_0\\
+ \vdots\\
+ N_{L-1}A_{L-2}\cdots A_0
+ \end{bmatrix}.
+ \label{eq:chain}
+\end{equation}
+For original target \(C_0x\), the complete criterion is
+\[
+ \ker\mathcal M_L\subseteq\ker C_0.
+\]
+This catches loss at later aggregation even when a record was adequate when
+first emitted. Nonlinear versions use the global fiber criterion from
+Theorem~\ref{thm:fibers}.
+
+\subsection{Layer order and heavier upper weights}
+
+Layer indices, transition direction, and map domains are part of the object
+being glued. Composition is ordered. Heavier upper weights can be used as
+known positive scaling of individual records or as reconstruction weights.
+Nonzero scaling can be undone while the individual records remain available.
+
+A single weighted scalar total is another compression and requires its own
+proof. Distinct weights alone are insufficient:
+\[
+ 1(1)+2(3)+3(2)=13=1(2)+2(1)+3(3).
+\]
+Even the same values in different orders collide in this example.
+
+The role of weights must be declared. Position labeling, confidence in noisy
+measurements, and semantic weighting of the target are different operations.
+The experiments must not alter an unweighted target while claiming merely
+to improve its encoding. Upper-layer weights can express the intended
+priority, while the retained indexed records supply the information needed
+for exact interpretation.
+
+\subsection{Learning proposal}
+
+A candidate objective is
+\begin{align}
+ \mathcal L={}&\mathcal L_{\rm task}
+ +\lambda_{\rm con}\sum_{e=(i,j)}
+   \norm{\pi_{i,e}(v_i)-\pi_{j,e}(v_j)}^2 \nonumber\\
+ &+\lambda_{\rm cyc}\sum_{(i,j,k)}
+   \norm{\tau_{ik}(v_i)-\tau_{jk}(\tau_{ij}(v_i))}^2
+ +\lambda_{\rm budget}\mathcal B(U).
+ \label{eq:training}
+\end{align}
+The cycle term applies only on valid common domains when these transition
+maps are part of the model. The budget term can penalize retained dimensions
+or grouped projection rows. This is a proposed training procedure, not a
+preservation theorem. Learned zero maps can make consistency losses vanish;
+hard sparsification can delete a necessary record; and a finite penalty need
+not impose an exact constraint.
+
+Start with a fixed record budget and no input-dependent hard deletion.
+After the basic mechanism works, test any adaptive gate for target-changing
+collisions in regions where protection turns off. Oracle teacher directions
+may be used in explicitly labeled diagnostic controls. Ordinary training
+should use the declared data and task loss rather than hidden teacher
+features.
+
+Inference must remain causal: records use current and earlier states.
+Future-layer supervision can be used in training under a specified protocol,
+but evaluation must not reveal unavailable future observations. This
+implements the causal discipline emphasized in the research discussion
+\cite{discussion}.
+
+\subsection{Forward values, gradients, and arithmetic}
+
+An exact forward identity implies equal ordinary derivatives wherever the
+functions are differentiable, provided the computation remains connected.
+Detaching or approximating a correction can change learning even when some
+forward values match. At internal activation boundaries, equivalent expressions
+can produce different automatic derivatives, which need not equal the
+derivative of the complete function.
+
+For example, \(\rho(z)-\rho(-z)=z\) as a real function. If both ReLU branches
+use derivative zero at \(z=0\), naive differentiation of that graph returns
+zero there, whereas the identity function has derivative one. A matched
+backward convention is needed when gradient preservation is part of a claim.
+
+For the pair correction, the absolute-value subtraction can also suffer
+catastrophic cancellation. At \(A=-10^{20},B=1\), its mathematical value is
+one, but the subtraction formula can return zero in binary64. A more stable
+pair evaluation returns zero when signs match and
+\(\min(|A|,|B|)\) when signs oppose. Compare signs directly rather than
+forming \(AB\), which may overflow. This improves that local computation;
+it does not make the complete floating-point pipeline exact.
+
+A local diagnostic
+\[
+ \ker DE(s)\subseteq\ker DT(s)
+\]
+is necessary for a differentiable decoder factorization but is not a
+global proof. Distinct activation regions may collide. The map \(x\mapsto
+x^2\) is locally invertible on separate positive and negative intervals,
+yet recovering \(x\) requires a branch identity. A neural atlas must
+therefore address cross-region collisions and valid chart domains.
+
+\section{Evaluation plan and acceptance criteria}
+\label{sec:experiments}
+
+\subsection{Stage 0: mathematical contracts}
+
+Reproduce the identities and negative controls using the supplied deterministic
+verification script. Build a small linear prototype with known observation and
+target matrices, construct a minimum residual basis, and verify its explicit
+decoder with rational arithmetic. This checks the mathematical implementation;
+it is not a neural-learning result.
+
+The negative controls are essential. Merged CReLU must fail on a missing
+contrast. Clipped-sum-plus-contrast must fail on its stated pair. The stated
+pairwise-product record must fail to determine the triple-product target. Floating-point tests
+must exhibit the stated rounding and subtraction failures. Favorable
+examples alone would not distinguish the proposed contract from a weaker one.
+
+\subsection{Stage 1: the original small-network diagnosis}
+
+Reuse the original teacher family and, where accessible, saved failed
+checkpoints. First freeze the ordinary representation and train only the
+selective measurement and readout components. Then run an end-to-end
+comparison separately. Keep training, model-selection, and final evaluation
+data distinct, with matched teachers and initializations across variants.
+
+Separate failure at the linear projection from failure at ReLU. An augmented
+span floor can certify remaining linear information loss. A zero span floor
+does not certify a hybrid clipped representation; activation-collision
+checks must follow. The QDO derivation appendix establishes the relevant
+exact floor and lower-bound distinction.
+
+Use the teacher-aware correction only as an oracle positive control. It
+demonstrates that a suitable record can repair a chosen failure. It does
+not establish that a learned model discovers that record from examples.
+
+\subsection{Comparators and resource accounting}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.30\linewidth}>{\raggedright\arraybackslash}p{0.64\linewidth}@{}}
+\toprule
+Comparator & Question it answers\\
+\midrule
+\endhead
+Ordinary ReLU model & What are the unmodified target error and
+collision patterns?\\
+CReLU on the same projected responses & How much loss comes from
+sign clipping after the existing measurement?\\
+Ordinary wider model & Is the effect explained by added capacity or compute?\\
+Random protected measurements & Does learned selection outperform a matched
+random record budget?\\
+Unstructured skip measurements & Does atlas alignment add value beyond
+carrying the same amount of extra data?\\
+Selected records without learned transport & Are the transition maps
+responsible for any gain?\\
+Uniform versus increasing layer weights & Does upper-layer weighting help
+after identity and capacity are held fixed?\\
+Full-rank signed measurement reference & What does a broad,
+input-preserving reference achieve? Report its larger budget explicitly.\\
+Oracle contrast or correction record & Can the diagnosed failure be repaired
+when the missing quantity is supplied? Keep this separate from learned results.\\
+\bottomrule
+\end{longtable}
+
+Match parameter count, activation count, persistent-state bytes, and measured
+compute as closely as possible. These budgets may not all match simultaneously;
+report the differences and use separate capacity-matched and compute-matched
+comparisons where needed. A low-dimensional dense projection can still be
+computationally expensive.
+
+\subsection{Stage 2: multiple boundaries and reusable targets}
+
+Test deeper compositions with records emitted before multiple lossy boundaries.
+Include order-sensitive targets, layer permutations, chart relabeling with
+correctly transformed maps, delayed dependencies, and mixed-sign coefficients.
+Include higher-order targets that cannot be determined by the selected
+pairwise records without an anchor.
+
+Use a declared collection of readouts on the same underlying features to test
+reuse. A record that stores one scalar answer can perform perfectly on that
+answer while failing a broader requirement. Distinguish interpolation on
+the training distribution from the stated admissible domain.
+
+\subsection{Stage 3: conditioning and numerical behavior}
+
+Perturb records along target-visible singular directions and compare target
+error with the derived stability bound. Include consistent perturbations
+\(\varepsilon=Mv\): they expose target errors a compatibility residual
+cannot detect.
+
+Report precision, scaling, overflow handling, and whether correctness means
+functional tolerance or bitwise equality. Test cancellation near zero and
+widely separated magnitudes. Check gradient flow through the protected path
+and state the subgradient convention at activation boundaries.
+
+\subsection{Metrics and decision gates}
+
+\begin{enumerate}
+\item \textbf{Structural correctness.} For analytic prototypes, prove the
+fiber or kernel condition on the declared domain. For learned nonlinear
+models, report explicit witnesses or bounded-domain verification where
+tractable. Failure to find a collision is not proof of sufficiency.
+\item \textbf{Target performance.} Report held-out normalized squared error
+for the original task and appropriate metrics for added tasks. The original
+\(10^{-3}\) NMSE threshold can be retained for continuity, but it is not an
+exact-preservation criterion.
+\item \textbf{Mechanism.} Audit the identified contrasts, negative common
+components, chart consistency, branch identities, anchors, and survival of
+records through the complete computation.
+\item \textbf{Cost.} Report parameters, FLOPs, latency, bytes, and record
+count alongside accuracy. Attribute benefits to selectivity or gluing only
+after the appropriate controls.
+\item \textbf{Reproducibility.} Preserve seeds, data splits, checkpoint
+selection rules, arithmetic settings, and per-case results. Report
+uncertainty across independent runs for learned comparisons.
+\end{enumerate}
+
+Proceed to a larger model only if learned records repair the identified
+failures at a defensible budget and the gain survives ordinary-capacity,
+random-record, and unstructured-skip controls. If agreement improves while
+target ambiguity persists, reject that representation. If a simple added
+channel explains the gain, report it without attributing the gain to atlas
+structure.
+
+\section{Established results and open questions}
+
+Selective preservation is mathematically possible: a representation may lose
+source distinctions while exactly retaining a declared target. The ReLU
+correction gives a constructive nonlinear example. The finite-pile identity
+shows that local corrections can compose. The linear theorems identify the
+missing directions requiring side records and give an explicit decoder.
+The atlas formulation separates compatibility, source explanation, and target
+observability.
+
+The unresolved research question is whether a neural system can learn useful
+records and transport maps at a better accuracy--cost tradeoff than simpler
+baselines. Selection must occur before collapse, preserve required nonlinear
+branches, and remain sufficient for later computation. Upper-layer weights,
+successful prediction, small consistency loss, and full parameter-Jacobian
+rank do not remove those obligations.
+
+The first implementation should be a small forward-boundary module with a
+declared record budget, a reconstruction interface to the atlas, and evaluation
+against the original certified failure types. Its acceptance statement is:
+\begin{keybox}
+Every ambiguity left by the complete retained state is invisible to the
+declared task family, and the implemented reconstruction exposes that
+information to the readout at the stated numerical precision.
+\end{keybox}
+
+\clearpage
+\section{Reproducible mathematical checks}
+\label{sec:checks}
+
+The source bundle includes \code{verify_math.py} and its generated
+\code{verification_results.json}. The checks use exact integer and rational arithmetic
+for algebraic identities and explicit floating-point operations only for
+rounding counterexamples. All eight check groups passed.
+
+\begin{center}
+\small
+\begin{tabularx}{\linewidth}{@{}p{0.47\linewidth}X@{}}
+\toprule
+Check & Domain and result\\
+\midrule
+Two-input correction & 289 pairs in \([-8,8]^2\); absolute, contrast,
+gate, and reconstruction identities agree.\\
+Signed coefficients & 2,401 coefficient/input quadruples in
+\([-3,3]^4\); general correction agrees with the target.\\
+Positive position weights & 294 ordered weighted cases; positive-homogeneity
+and weighted correction checks pass.\\
+Original four-feature teacher & 2,401 feature tuples in \([-3,3]^4\);
+the pair corrections recover the target exactly.\\
+Finite piles & 3,125 five-leaf stacks in \([-2,2]^5\), each through
+all 14 ordered binary groupings: 43,750 tree evaluations.\\
+Deliberate ambiguities & CReLU after a merge, clipped sum plus contrast,
+and pairwise-product parity retain their target-changing collisions.\\
+Selective linear record & 625 inputs in \([-2,2]^4\); one added coordinate
+repairs the required target while an irrelevant coordinate stays unrecoverable.\\
+Finite precision & float32/64 rounding collisions and subtractive
+cancellation are reproduced; the stable pair formula is checked.\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+These finite checks validate calculations and witnesses. The proofs establish
+the general statements under their assumptions. No new network training,
+measured speedup, or accuracy improvement is reported.

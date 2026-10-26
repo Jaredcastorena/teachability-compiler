@@ -1,0 +1,81 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern,microtype}
+\usepackage[margin=0.92in,headheight=15pt]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,bm}
+\usepackage{booktabs,array,tabularx,longtable}
+\usepackage{graphicx,xcolor}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{enumitem,needspace,fancyhdr}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[most]{tcolorbox}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,citecolor=blue!45!black,
+urlcolor=blue!45!black,pdftitle={Selective Overlap Records},
+pdfsubject={Preserving task information through ordered neural transitions}]{hyperref}
+\definecolor{ink}{HTML}{19374D}
+\definecolor{teal}{HTML}{116B70}
+\definecolor{light}{HTML}{EDF7F6}
+\definecolor{muted}{HTML}{586975}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5.5pt}
+\setlength{\emergencystretch}{3em}
+\setlist{nosep,leftmargin=1.4em}
+\widowpenalty=10000
+\clubpenalty=10000
+\allowdisplaybreaks[1]
+\setcounter{tocdepth}{1}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\color{ink}Selective Overlap Records}
+\fancyhead[R]{\small\color{muted}Research proposal}
+\fancyfoot[L]{\scriptsize\color{muted}Working draft 1.0}
+\fancyfoot[R]{\small\thepage}
+\newtcolorbox{keybox}{colback=light,colframe=teal,boxrule=0.6pt,
+arc=2pt,left=9pt,right=9pt,top=7pt,bottom=7pt,breakable}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\R}{\mathbb R}
+\newcommand{\E}{\mathbb E}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\row}{\operatorname{row}}
+\newcommand{\im}{\operatorname{im}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\ReLU}{\operatorname{ReLU}}
+\newcommand{\CReLU}{\operatorname{CReLU}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\inner}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\pos}[1]{\left[#1\right]_+}
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\begin{document}
+\thispagestyle{plain}
+{\color{teal}\small RESEARCH PROPOSAL \quad / \quad 25 OCTOBER 2026}
+\vspace{8pt}
+
+{\LARGE\bfseries\color{ink}Selective Overlap Records\par}
+\vspace{4pt}
+{\large Preserving task information through ordered neural transitions\\
+and reconstructing it with atlas gluing\par}
+\vspace{10pt}
+{\small Working draft 1.0. Mathematical derivations, implementation proposal,
+and falsifiable evaluation plan.}
+\input{01_origin_and_contract}
+\input{02_local_corrections}
+\input{03_atlas_reconstruction}
+\input{04_implementation_and_evaluation}
+\clearpage
+\appendix
+\input{05_qdo_derivations}
+\input{06_grid_and_precision_limits}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\input{07_references}
+\end{document}

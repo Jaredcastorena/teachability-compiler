@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "verified_date": "2026-10-26",
+  "status": "passed",
+  "scope": "New scoped core formalization of Selective Overlap Records; not the complete proposal.",
+  "lean_version": "4.35.0",
+  "lean_commit": "eb6cafb7290e8bd5f2937522d8d804f58f02bafc",
+  "mathlib_tag": "v4.35.0",
+  "mathlib_revision": "56a005855ea17e0b0958f73ec801ae140b0a1679",
+  "commands": [
+    {
+      "command": "lake build",
+      "exit_code": 0,
+      "output_log": "build_log.txt"
+    },
+    {
+      "command": "lake env lean AxiomAudit.lean",
+      "exit_code": 0,
+      "output_log": "axiom_audit.txt"
+    },
+    {
+      "command": "lake env lean ExactLocalCoalition.lean",
+      "exit_code": 0,
+      "output": ""
+    }
+  ],
+  "theorem_count": 64,
+  "modules": {
+    "SelectiveOverlap/Preservation.lean": {
+      "sha256": "f8ccbf3674a9d9f50ca1bf89d251ba9645ac4a45100c5ea7ece64bfe1845ba46",
+      "public_theorem_count": 17,
+      "public_theorems": [
+        "SelectiveOverlap.preservesTarget_iff_exists_range_decoder",
+        "SelectiveOverlap.preservesTarget_of_factorization",
+        "SelectiveOverlap.target_factorizations_comp",
+        "SelectiveOverlap.preservesTarget_comp",
+        "SelectiveOverlap.preservesTarget_with_side_record",
+        "SelectiveOverlap.preservesTarget_before_postprocessing",
+        "SelectiveOverlap.not_preservesTarget_of_collision",
+        "SelectiveOverlap.ker_le_iff_preservesTarget",
+        "SelectiveOverlap.exists_linear_range_decoder_of_ker_le",
+        "SelectiveOverlap.ker_le_iff_exists_linear_range_decoder",
+        "SelectiveOverlap.range_le_ker_iff_agreement_zero",
+        "SelectiveOverlap.compatible_record_has_source",
+        "SelectiveOverlap.compatible_record_has_unique_target",
+        "SelectiveOverlap.Counterexample.diagonalRecords_agree",
+        "SelectiveOverlap.Counterexample.diagonalRecords_cover_compatible",
+        "SelectiveOverlap.Counterexample.diagonalRecords_lose_target",
+        "SelectiveOverlap.Counterexample.diagonalRecords_have_no_target_decoder"
+      ]
+    },
+    "SelectiveOverlap/Relu.lean": {
+      "sha256": "4d07f4d0ab8a61f09f2dfeda50691c8519df59d04ce496871497d66da41360a1",
+      "public_theorem_count": 47,
+      "public_theorems": [
+        "SelectiveOverlap.relu_zero",
+        "SelectiveOverlap.relu_of_nonneg",
+        "SelectiveOverlap.relu_of_nonpos",
+        "SelectiveOverlap.relu_nonneg",
+        "SelectiveOverlap.self_le_relu",
+        "SelectiveOverlap.relu_sub_neg",
+        "SelectiveOverlap.crelu_signed_inverse",
+        "SelectiveOverlap.relu_add_neg",
+        "SelectiveOverlap.two_mul_relu",
+        "SelectiveOverlap.relu_eq_half",
+        "SelectiveOverlap.correction_reconstruct",
+        "SelectiveOverlap.correction_nonneg",
+        "SelectiveOverlap.correction_abs",
+        "SelectiveOverlap.correction_comm",
+        "SelectiveOverlap.correction_zero_left",
+        "SelectiveOverlap.correction_zero_right",
+        "SelectiveOverlap.correction_of_nonneg",
+        "SelectiveOverlap.correction_of_nonpos",
+        "SelectiveOverlap.correction_of_nonneg_nonpos",
+        "SelectiveOverlap.correction_of_nonpos_nonneg",
+        "SelectiveOverlap.correction_gate",
+        "SelectiveOverlap.abs_common_contrast",
+        "SelectiveOverlap.correction_contrast",
+        "SelectiveOverlap.relu_mul_nonneg",
+        "SelectiveOverlap.positive_weighted_repair",
+        "SelectiveOverlap.signed_correction_abs",
+        "SelectiveOverlap.signed_correction_reconstruct",
+        "SelectiveOverlap.leaf_correction_of_nonneg",
+        "SelectiveOverlap.leaf_correction_of_nonpos",
+        "SelectiveOverlap.four_teacher_repair",
+        "SelectiveOverlap.correction_cocycle",
+        "SelectiveOverlap.merge_assoc",
+        "SelectiveOverlap.merge_comm",
+        "SelectiveOverlap.merge_zero_left",
+        "SelectiveOverlap.merge_zero_right",
+        "SelectiveOverlap.merge_reconstruct",
+        "SelectiveOverlap.merge_signed_leaves",
+        "SelectiveOverlap.OrderedTree.summary_node",
+        "SelectiveOverlap.OrderedTree.positive_telescope",
+        "SelectiveOverlap.OrderedTree.signed_sum_eq_mass_difference",
+        "SelectiveOverlap.OrderedTree.negative_telescope",
+        "SelectiveOverlap.OrderedTree.crelu_mass_identity",
+        "SelectiveOverlap.OrderedTree.total_correction_eq_min_masses",
+        "SelectiveOverlap.OrderedTree.total_correction_nonneg",
+        "SelectiveOverlap.crelu_after_sum_counterexample",
+        "SelectiveOverlap.clipped_sum_contrast_counterexample",
+        "SelectiveOverlap.merge_order_counterexample"
+      ]
+    }
+  },
+  "project_files": {
+    "SelectiveOverlap.lean": {
+      "sha256": "bea59ed7a9fcde5a2f028025e7274c9b231e6385207516bf3b2ca27e7f714a6f"
+    },
+    "AxiomAudit.lean": {
+      "sha256": "252c6ea2100d21677c9eb6432b36c1be589f510ba4d00e35939b1d846fa5c4f7"
+    },
+    "lakefile.toml": {
+      "sha256": "3993a32d4b865029748d325af5429337735d4c87fcace6fe25e9b627c6f550b7"
+    },
+    "lean-toolchain": {
+      "sha256": "ca5f1f601d34c49079e38d7e7041eb0f2a9c227fbc1df0f404820069a052330c"
+    },
+    "lake-manifest.json": {
+      "sha256": "e4b7dfb73293ed2664b5b6d66a084590af1d88c951bd378a4ab67fe42bc1c81f"
+    }
+  },
+  "axiom_audit": {
+    "path": "axiom_audit.txt",
+    "sha256": "82c2bbd403b835a21a64db5253fa488d8b53b366005bef13d99c1568048948a8",
+    "public_theorems_audited": 64,
+    "axioms_observed": [
+      "Classical.choice",
+      "Quot.sound",
+      "propext"
+    ],
+    "sorryAx_present": false,
+    "new_custom_axiom_declarations": 0
+  },
+  "legacy_proof": {
+    "path": "ExactLocalCoalition.lean",
+    "git_blob_sha1": "3cd4a093ed05455e07ad4a896f0fe650653c7395",
+    "unchanged": true,
+    "compiles": true,
+    "part_of_selective_overlap_coverage": false
+  },
+  "not_formalized": [
+    "Minimum residual rank and pseudoinverse formulas",
+    "Conditioning and numerical error bounds",
+    "Full chart cocycles and Hodge decomposition",
+    "Gaussian ReLU kernel and conditional-risk derivations",
+    "Grid rotations and finite-alphabet packing",
+    "Floating-point and automatic-differentiation behavior",
+    "Neural learning, efficiency, generalization, or benchmark claims"
+  ],
+  "build_log_sha256": "b5182942e3f13f6de17c50d8e5e3e4816598858a06090ef95d191dd10c881708"
+}

@@ -1,0 +1,414 @@
+\section{Reconstructing targets from overlapping records}
+\label{atl:section}
+
+The atlas idea becomes precise when compatibility and information preservation
+are treated as separate requirements. Local records should agree about the
+features they share. Their combined information should also determine every
+distinction required by the declared target. Agreement alone does not establish
+the second property. This section supplies an exact linear model of both
+requirements, a construction of minimal selective residuals, and a stability
+bound for reconstruction. These are mathematical components proposed for this
+architecture; they are not claims that an existing Hodge implementation already
+provides the desired neural guarantee.
+
+\subsection{Coordinate charts and partial views}
+\label{atl:charts}
+
+A genuine coordinate chart $\phi_i:U_i\to V_i$ is invertible on its domain.
+Two charts describing the same underlying object have the transition map
+\begin{equation}
+  \tau_{ij}=\phi_j\circ\phi_i^{-1}
+  \quad\text{on }\phi_i(U_i\cap U_j).
+  \label{atl:transition}
+\end{equation}
+The identities
+\begin{equation}
+  \tau_{ji}=\tau_{ij}^{-1},
+  \qquad
+  \tau_{jk}\circ\tau_{ij}=\tau_{ik}
+  \label{atl:cocycle}
+\end{equation}
+hold wherever the compositions are defined; the second identity is evaluated
+on the common triple overlap. For affine transitions
+$\tau_{ij}(u)=A_{ij}u+b_{ij}$, these conditions imply
+\begin{align}
+  A_{ji}A_{ij}&=I,
+  & b_{ji}&=-A_{ji}b_{ij}, \nonumber\\
+  A_{ik}&=A_{jk}A_{ij},
+  & b_{ik}&=A_{jk}b_{ij}+b_{jk}.
+  \label{atl:affine-cocycle}
+\end{align}
+The displayed matrix equalities apply when the affine maps agree on overlaps
+with nonempty interior in their coordinate spaces. On a smaller constrained
+overlap, equality is required only on that overlap.
+
+A many-to-one layer is not automatically such a chart. For partial layer views,
+use observation maps $r_i:\mathcal Z\to E_i$ and comparison maps
+$\rho_{i,ij}:E_i\to O_{ij}$. The common overlap condition is
+\begin{equation}
+  \rho_{i,ij}(r_i(z))=\rho_{j,ij}(r_j(z)).
+  \label{atl:restriction}
+\end{equation}
+Neither observation map needs an inverse. Their joint records may still
+determine the task. Cellular sheaves provide a standard language for compatible
+local data and restriction maps; their degree-zero global sections are
+characterized by an agreement operator. The associated spectral theory also
+studies reducing edge-message dimensions while preserving global sections
+\citep{sheaves}. The proposal uses this organizational idea without assuming
+that an arbitrary stack of neural layers is already an atlas or a sheaf with
+the required observability properties.
+
+Layer identities, overlap domains, branch choices, and directed transition
+maps belong to the retained representation. Ordered composition in
+\eqref{atl:cocycle} cannot generally be replaced by an unlabeled weighted sum.
+
+\subsection{The source map and the agreement operator}
+\label{atl:two-operators}
+
+Let the source state be $z\in\R^n$, with local records $e_i=M_i z$.
+Stack them into $e=Mz\in E=\bigoplus_i E_i$. Let
+$\delta:E\to O$ collect overlap discrepancies, for example
+$(\delta e)_{ij}=P_{i,ij}e_i-P_{j,ij}e_j$. Correct restrictions satisfy
+\begin{equation}
+  \delta M=0,
+  \qquad\text{hence}\qquad
+  \im M\subseteq\ker\delta.
+  \label{atl:complex}
+\end{equation}
+This says that genuine source records agree. The stronger condition
+\begin{equation}
+  \im M=\ker\delta
+  \label{atl:exactness}
+\end{equation}
+says that every compatible collection has an explanation within the chosen
+source model. It is needed for that universal gluing claim, although decoding
+records already known to equal $Mz$ does not require it.
+
+The ambiguity left about the source is $\ker M$, not $\ker\delta$.
+The latter contains compatible records themselves. In particular,
+$\ker(\delta^\top\delta)=\ker\delta$ characterizes agreement; it does not
+establish that those records determine the original input or target. If
+\eqref{atl:exactness} holds, compatible records identify a source equivalence
+class in $\R^n/\ker M$. The remaining question is whether the target is
+constant on that class.
+
+\subsection{An exact criterion for target observability}
+\label{atl:observability}
+
+Write the required linear task features as $t=Cz\in\R^q$. The rows of $C$
+may describe several required readouts. Taking $C=I$ recovers the stronger
+requirement of preserving the entire source.
+
+\begin{theorem}[Linear target observability]
+\label{atl:observability-theorem}
+For unrestricted $z\in\R^n$, the following statements are equivalent:
+\begin{enumerate}
+  \item Some decoder recovers $Cz$ from $Mz$ for every $z$.
+  \item $\ker M\subseteq\ker C$.
+  \item $\row(C)\subseteq\row(M)$.
+  \item There is a linear matrix $D$ such that $C=DM$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+If a decoder exists and $v\in\ker M$, then $Mv=M0$, so it must give
+$Cv=C0=0$. This proves the second statement. Conversely, that statement says
+that two states with the same records have the same target. In finite
+dimensional Euclidean spaces, $\row(M)=(\ker M)^\perp$ and likewise for $C$.
+Taking orthogonal complements therefore makes the second statement equivalent
+to the third. Under the third statement, express each row of $C$ as a linear
+combination of rows of $M$ and collect the coefficients into $D$. This gives
+$C=DM$. Finally, $D(Mz)=Cz$ provides the required decoder, completing all
+implications.
+\end{proof}
+
+\begin{corollary}[A well-defined target for every compatible record]
+\label{atl:gluing-corollary}
+Assume $\im M=\ker\delta$. A linear gluing readout
+$\Gamma:\ker\delta\to\R^q$ satisfying $\Gamma(Mz)=Cz$ exists if and only
+if $\ker M\subseteq\ker C$. When it exists, one such formula is
+$\Gamma(e)=CM^\dagger e$.
+\end{corollary}
+
+\begin{proof}
+Exactness ensures that every compatible $e$ has a preimage $z$. Any two
+preimages differ by a member of $\ker M$. Under the stated kernel inclusion,
+they have the same target, so assigning $\Gamma(e)=Cz$ is well-defined.
+Preimages can be added and scaled, which makes this assignment linear.
+Moreover, $CM^\dagger M=C$ by target observability, proving the formula.
+Conversely, the zero record has both $0$ and every $v\in\ker M$ as
+preimages. A well-defined readout therefore requires $Cv=0$ for every such
+$v$, establishing necessity.
+\end{proof}
+
+Thus individual views can be lossy while their combined records remain exactly
+task-sufficient. For a restricted source domain $\mathcal Z$, the corresponding
+necessary and sufficient condition is
+\begin{equation}
+  v\in\ker M\cap(\mathcal Z-\mathcal Z)
+  \quad\Longrightarrow\quad Cv=0.
+  \label{atl:restricted-domain}
+\end{equation}
+The unrestricted theorem is a convenient stronger certificate. It is also
+necessary when the allowed source domain contains an open region: any missing
+direction can then be scaled into a difference between allowed states.
+
+\Needspace{20\baselineskip}
+\subsection{The smallest selective linear residual}
+\label{atl:minimal-residual}
+
+Suppose $Mz$ is already retained. Additional records $r=Nz$ should supply the
+target distinctions absent from it. The following result gives their minimum
+dimension and an explicit decoder. Here $M^\dagger$ denotes the Moore--Penrose
+pseudoinverse.
+
+\begin{theorem}[Minimum residual dimension]
+\label{atl:residual-theorem}
+The minimum number of additional independent real-valued linear coordinates
+needed to recover $Cz$ from $(Mz,Nz)$ for every $z$ is
+\begin{equation}
+  r_*=
+  \rank\!\begin{bmatrix}M\\C\end{bmatrix}-\rank M
+  =\rank(CP_K),
+  \qquad P_K=I-M^\dagger M.
+  \label{atl:minimum-rank}
+\end{equation}
+Choose $N$ with orthonormal rows spanning $\row(CP_K)$. Then $N$ has $r_*$
+rows and the exact decoder is
+\begin{equation}
+  Cz=C M^\dagger(Mz)+C N^\top(Nz).
+  \label{atl:residual-decoder}
+\end{equation}
+For $r_*=0$, the second term is absent.
+\end{theorem}
+
+\begin{proof}
+The matrix $P_K$ is the orthogonal projector onto $K=\ker M$.
+For any successful residual $N$, its restriction to $K$ must distinguish
+everything distinguished there by $C$. The observability theorem, applied on
+$K$, gives a factorization of $C|_K$ through $N|_K$. Consequently
+\begin{equation*}
+  \rank(CP_K)=\rank(C|_K)
+  \le\rank(N|_K)\le\text{number of rows of }N.
+\end{equation*}
+This is the lower bound.
+
+For the proposed construction, the rows of $N$ lie in $K$, so $NP_K=N$.
+The matrix $N^\top N$ projects onto $\row(CP_K)$, giving
+$CP_K=CP_KN^\top N=CN^\top N$. Therefore
+\begin{equation*}
+  C=C(I-P_K)+CP_K=CM^\dagger M+CN^\top N,
+\end{equation*}
+which proves the decoder and attains the bound. Finally,
+$\row\bigl([M^\top,C^\top]^\top\bigr)$ is the orthogonal direct sum of
+$\row(M)$ and $\row(CP_K)$: subtracting $CM^\dagger M$ from $C$ produces
+the second summand, and adding it back recovers the original rows. Their
+dimensions establish the rank-difference identity.
+\end{proof}
+
+This is a precise sense in which residual retention can be selective.
+For $C=I$, $r_*=n-\rank M$; a smaller task family may need fewer coordinates.
+The result counts real coordinates, not bits or computational cost. Dense
+projections may be expensive, and near-zero singular values need a numerical
+stability analysis even when symbolic rank is full.
+
+The construction also requires a declared target map. If $C$ is known only
+through examples, a learned estimate of its missing directions does not inherit
+an all-input guarantee merely by using this formula. One controlled experiment
+can supply $C$ analytically and verify the construction; a second can learn it
+and measure the resulting errors. These are different claims. To preserve
+several linear targets, stack their matrices into $C$ before constructing $N$.
+Adding a future target can increase $\rank(CP_K)$ and require another retained
+coordinate. An apparently unnecessary direction may therefore be dispensable
+for one fixed readout yet necessary for reusable computation. The selected task
+family must remain part of the specification rather than an implicit property
+of the current training batch.
+
+\subsection{A three-variable example}
+\label{atl:example}
+
+Let $z=(a,b,c)^\top$ and retain two adjacent measurements,
+\begin{equation}
+  s_{12}=a+b,\qquad s_{23}=b+c,
+  \qquad
+  M=\begin{bmatrix}1&1&0\\0&1&1\end{bmatrix}.
+  \label{atl:adjacent-example}
+\end{equation}
+Its kernel is $\operatorname{span}\{(1,-1,1)^\top\}$. Individual values are
+ambiguous, but $a-c=s_{12}-s_{23}$ is exactly preserved. The target $a+c$
+changes along the missing direction and is not recoverable. Adding
+$s_{13}=a+c$ resolves the ambiguity:
+\begin{align}
+  a&=(s_{12}+s_{13}-s_{23})/2,\nonumber\\
+  b&=(s_{12}+s_{23}-s_{13})/2,\nonumber\\
+  c&=(s_{13}+s_{23}-s_{12})/2.
+  \label{atl:example-inverse}
+\end{align}
+Known nonzero weights can scale these records without changing their joint
+kernel. Collapsing them into one weighted scalar is a further operation that
+requires a new observability check. The example supports combining partial
+views; it does not assert that arbitrary overlap summaries are sufficient.
+
+For comparison, suppose two slices originally contain $(a,b)$ and $(b,c)$,
+but their saved overlap records both contain only $b$. Their agreement operator
+is $\delta(e_1,e_2)=e_1-e_2$. Here $\im M=\ker\delta$ holds exactly: every
+compatible pair is generated by some source. Nevertheless, $a$ and $c$ remain
+unobserved, and $a-c$ cannot be recovered. This example satisfies the universal
+compatibility claim while failing target observability. Saving a common
+intersection is therefore different from saving enough complementary local
+information to reconstruct the desired global distinction.
+
+\subsection{Weighted gluing and target stability}
+\label{atl:weighted-gluing}
+
+Given observed records $y$, consider
+\begin{equation}
+  \widehat z\in\arg\min_z
+  \frac12\norm{W^{1/2}(Mz-y)}_2^2,
+  \qquad W\succ0.
+  \label{atl:weighted-ls}
+\end{equation}
+The positive matrix $W$ defines the reconstruction metric. Its block weights
+can give upper-layer records greater influence. This operation still retains
+the indexed record vector $y$ and the map $M$; the scalar objective value is
+not their encoding.
+
+\begin{proposition}[Weights and reconstruction error]
+\label{atl:weighted-proposition}
+Let $H=M^\top WM$, $A=W^{1/2}M$, and
+\begin{equation}
+  M_W^\dagger=A^\dagger W^{1/2}
+  =(M^\top WM)^\dagger M^\top W.
+  \label{atl:weighted-inverse}
+\end{equation}
+Then $\ker H=\ker M$. For $y=Mz+\varepsilon$, the estimate
+$\widehat t=CM_W^\dagger y$ satisfies
+\begin{equation}
+  \widehat t-Cz=-CP_Kz+CM_W^\dagger\varepsilon.
+  \label{atl:bias-noise}
+\end{equation}
+If $\ker M\subseteq\ker C$, the first term vanishes and
+\begin{equation}
+  \norm{\widehat t-Cz}_2
+  \le \norm{CA^\dagger}_2\,
+       \norm{W^{1/2}\varepsilon}_2.
+  \label{atl:noise-bound}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+For every $v$, $v^\top Hv=\norm{W^{1/2}Mv}_2^2$. Since $W$ is positive
+definite, this expression vanishes exactly when $Mv=0$, proving the kernel
+identity. The minimum Euclidean norm least-squares solution is
+$A^\dagger W^{1/2}y$. The identity
+$A^\dagger=(A^\top A)^\dagger A^\top$ gives
+\eqref{atl:weighted-inverse}. Because multiplication by $W^{1/2}$ does not
+change the row space, $A^\dagger A=M^\dagger M=I-P_K$. Substituting the
+observation model gives
+\begin{equation*}
+  \widehat t=C(I-P_K)z+CA^\dagger W^{1/2}\varepsilon,
+\end{equation*}
+which proves \eqref{atl:bias-noise}. Target observability implies $CP_K=0$.
+Applying the operator-norm inequality to the remaining term proves
+\eqref{atl:noise-bound}.
+\end{proof}
+
+Thus positive weights change conditioning and the treatment of inconsistent
+observations, but cannot restore a missing target direction. Regularization
+can select a solution from an ambiguous family; it does not identify which
+member supplied the data. A genuine anchor adds a measurement.
+
+For $r=\rank A>0$ and a compact singular-value decomposition
+$A=U_r\Sigma_rV_r^\top$, the target sensitivity factor is
+\begin{equation}
+  \norm{CA^\dagger}_2
+  =\norm{CV_r\Sigma_r^{-1}}_2
+  \le \frac{\norm C_2}{\sigma_{\min}^{+}(A)}.
+  \label{atl:target-conditioning}
+\end{equation}
+Small singular values matter through their target coefficients $CV_r$.
+If $r=0$, observability requires $C=0$, so the recoverable linear target is
+trivial and the singular-value bound is unnecessary.
+Moreover, a small gluing residual alone does not bound target error: an error
+$\varepsilon=Mv$ is consistent with a different source and can change the
+target by $Cv$. The noise bound controls the complete record error, not only
+its inconsistent component. All displayed identities use exact arithmetic;
+an implementation must also account for rounding and learned-model error.
+
+\subsection{Anchors, gauges, and higher-order distinctions}
+\label{atl:gauges}
+
+For a connected graph, let $B$ be its oriented incidence matrix and retain
+differences $d=Bz$. If $Bv=0$, every adjacent pair has equal values; connectivity
+then makes $v$ constant. Thus $\ker B=\operatorname{span}\{\mathbf1\}$.
+Differences determine an absolute state only up to an additive offset. They
+determine a target $Cz$ exactly when $C\mathbf1=0$. A positive weighted total
+usually fails this test. Retaining one actual node value supplies an anchor;
+declaring the mean to be zero merely chooses a convention unless the original
+mean was known. For anchor measurements $Gz$, the general condition is
+\begin{equation}
+  \ker M\cap\ker G\subseteq\ker C.
+  \label{atl:anchor-condition}
+\end{equation}
+Disconnected graphs leave one offset per component; vector-valued states leave
+a vector offset in each component.
+
+Higher-order targets can expose ambiguities invisible to pairwise records.
+For $x_i\in\{-1,+1\}$, retain all products
+$r_{12}=x_1x_2$, $r_{23}=x_2x_3$, and $r_{13}=x_1x_3$.
+Both $(1,1,1)$ and $(-1,-1,-1)$ yield the same records and satisfy their
+compatibility relation $r_{12}r_{23}r_{13}=1$. Yet the triple product
+$x_1x_2x_3$ changes sign. A sign anchor resolves this particular ambiguity.
+Compatibility must therefore be tested against the complete target family,
+including interactions that become relevant later.
+
+\subsection{What a Hodge decomposition contributes}
+\label{atl:hodge}
+
+For an unweighted finite complex, let $B$ take vertex values to edge
+differences and $K$ take edge values to oriented face sums. Then $KB=0$.
+The edge space has the orthogonal decomposition
+\begin{equation}
+  E=\im B\ \oplus\ \im K^\top\ \oplus\ \mathcal H,
+  \qquad
+  \mathcal H=\ker K\cap\ker B^\top.
+  \label{atl:hodge-decomposition}
+\end{equation}
+Indeed, $KB=0$ makes the first two images orthogonal, and their joint
+orthogonal complement is precisely the displayed intersection. Also,
+\begin{equation}
+  \mathcal H=\ker(BB^\top+K^\top K),
+  \label{atl:harmonic-kernel}
+\end{equation}
+because its quadratic form is
+$\norm{B^\top e}_2^2+\norm{Ke}_2^2$. Consequently,
+$\ker K=\im B\oplus\mathcal H$: locally curl-free records need not be
+globally integrable when a harmonic obstruction remains. This distinction,
+and reconstruction from pairwise differences, is standard in combinatorial
+Hodge theory \citep{hodge}.
+
+Keeping all three components preserves the edge record. Keeping only the
+gradient component is a projection. It is justified for exact source recovery
+when the allowed records are known to lie in $\im B$, or for a specified task
+when that task ignores every discarded ambiguity. Hodge structure can expose
+and organize disagreement; it does not establish that curl or harmonic
+components are irrelevant to a neural target.
+
+\begin{keybox}
+\textbf{The reconstruction contract.}
+Save labeled local records before the required distinctions disappear.
+Verify their overlap relations, and require that their remaining source
+ambiguities are target-invisible. In the linear model these are the separate
+conditions $\delta M=0$ and $\ker M\subseteq\ker C$; a universal gluing claim
+additionally needs $\im M=\ker\delta$. Use the target sensitivity bound to
+assess numerical reliability. These guarantees must be checked again whenever
+records are merged, compressed, clipped, or discarded.
+\end{keybox}
+
+For nonlinear learned maps, the corresponding global requirement is that equal
+complete records imply equal targets. A Jacobian kernel test is only local:
+$x\mapsto x^2$ has nonzero derivative on separate positive and negative
+intervals while merging their opposite points. Branch identities and
+cross-region collisions therefore matter. The linear constructions above
+provide controlled cases and explicit certificates; extending them to the
+learned nonlinear architecture remains a stated research obligation.

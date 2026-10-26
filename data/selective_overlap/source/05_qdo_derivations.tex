@@ -1,0 +1,394 @@
+\section{Derivations connecting the projection audit to overlap preservation}
+\label{qdo:appendix}
+
+This appendix separates three objects: the historical training intervention,
+the information in a fixed linear measurement, and the information remaining
+after that measurement is rectified. The Gaussian calculation supplies an
+exact diagnostic for the original synthetic task. Its application to a
+selective overlap channel requires an additional conditioning argument.
+
+\subsection{Historical capacity, information loss, and anchor geometry}
+\label{qdo:historical}
+
+The archived student was a bias-free network
+\begin{equation}
+ f_\theta(x)=\sum_{i=1}^{H}a_i\ReLU(w_i^\top x),
+ \qquad W=[w_1,\ldots,w_H]\in\R^{8\times H}.
+ \label{qdo:student}
+\end{equation}
+Its teacher used four orthonormal directions:
+\begin{equation}
+ f_*(x)=\sum_{j=1}^{4}c_j\ReLU(q_j^\top x),\qquad
+ c=(-\tfrac12,+\tfrac12,-\tfrac12,+\tfrac12),\qquad
+ q_i^\top q_j=\delta_{ij}.
+ \label{qdo:teacher}
+\end{equation}
+Thus width four had enough capacity to express the scalar target. Nevertheless,
+every $8$-to-$4$ linear map satisfies
+\begin{equation}
+ \dim\ker W^\top=8-\rank W\ge4.
+ \label{qdo:nullity}
+\end{equation}
+For any $v\in\ker W^\top$, the inputs $x$ and $x+v$ have identical
+preactivations and identical post-ReLU states. Preserving every input was
+therefore impossible in this architecture. Preserving the target was possible
+because it depends only on the four-dimensional teacher span. A successful
+representation could also discard distinctions within that span whenever they
+leave the target unchanged. The audit concerned collisions with \emph{different}
+required targets, rather than every collision or an ordinary rank reduction
+\cite{qdo,projection}.
+
+The historical QDO intervention acted on parameters. On the domain
+$r_i=\norm{w_i}>0$, define
+\begin{equation}
+ u_i=w_i/r_i,\qquad b_i=a_i r_i,\qquad
+ \phi(\theta)=\operatorname{pack}(u_1,\ldots,u_H,b_1,\ldots,b_H).
+ \label{qdo:canonical}
+\end{equation}
+For positive $s_i$, replacing $(w_i,a_i)$ by $(s_iw_i,a_i/s_i)$ leaves both
+$f_\theta$ and $\phi(\theta)$ unchanged, by positive homogeneity of ReLU.
+The coordinates intentionally remove this parameter ambiguity; they are not
+an encoding from which every original parameter value can be reconstructed.
+
+With fixed historical parameters $\alpha_j$, an orthonormal-column matrix
+$Q\in\R^{N\times k}$, and bandwidth $\tau>0$, write
+\begin{align}
+ z&=Q^\top\phi(\theta),& z_j&=Q^\top\phi(\alpha_j),&
+ \delta_j&=z-z_j,\\
+ \mathcal R(\theta)&=\sum_j\omega_j,&
+ \omega_j&=\exp\!\left(-\frac{\norm{\delta_j}^2}{2\tau^2}\right),&
+ r_z&=\frac{1}{\tau^2}\sum_j\omega_j\delta_j.
+ \label{qdo:anchor}
+\end{align}
+The negative gradient is
+\begin{equation}
+ F=-\nabla_\theta\mathcal R=D\phi(\theta)^\top Qr_z.
+ \label{qdo:force}
+\end{equation}
+For $v=Qr_z$, unpacked into $v_{u_i},v_{b_i}$, differentiation gives
+\begin{align}
+ \mathrm du_i&=r_i^{-1}(I-u_i u_i^\top)\,\mathrm dw_i,&
+ \mathrm db_i&=a_i u_i^\top\mathrm dw_i+r_i\,\mathrm da_i,\\
+ F_{w_i}&=r_i^{-1}(I-u_i u_i^\top)v_{u_i}+a_i v_{b_i}u_i,&
+ F_{a_i}&=r_i v_{b_i}.
+ \label{qdo:pullback}
+\end{align}
+Consequently $w_i^\top F_{w_i}-a_iF_{a_i}=0$: this auxiliary force is
+orthogonal to the infinitesimal positive-rescaling direction. Penalty
+invariance does not establish invariance of the complete Adam trajectory,
+nor does it establish injectivity of a forward representation \cite{qdo}.
+The optimizer projection $Q^\top\phi(\theta)$ and input measurement $W^\top x$
+act on different spaces. The proposal leaves this optimizer intervention
+behind and places its preservation requirement on the forward state and its
+overlap records.
+
+This distinction also separates their possible guarantees. An auxiliary
+parameter force can change which representation is learned; it does not give
+a decoder access to information missing from a particular frozen forward
+state. An overlap record instead changes what that decoder receives. Its
+correctness must be established by a reconstruction or target-factorization
+identity for the retained observations. An optimizer result cannot substitute
+for that identity, even when both interventions were motivated by the same
+feature-merging failure.
+
+\subsection{The Gaussian ReLU kernel from polar coordinates}
+\label{qdo:kernel}
+
+Let $(U,V)$ be jointly standard normal with correlation $\rho\in[-1,1]$.
+Set $\vartheta=\arccos\rho$ and express
+\begin{equation}
+ U=Z_1,\qquad V=\cos\vartheta\,Z_1+\sin\vartheta\,Z_2,
+ \label{qdo:normalpair}
+\end{equation}
+where $Z_1,Z_2$ are independent standard normals. Their polar representation is
+$(Z_1,Z_2)=R(\cos\varphi,\sin\varphi)$, with $\varphi$ uniform on
+$[0,2\pi)$, independent of $R$, and $\E R^2=2$. Therefore
+$U=R\cos\varphi$ and $V=R\cos(\varphi-\vartheta)$.
+The angles where both factors are positive form an interval equivalent to
+$[\vartheta-\pi/2,\pi/2]$. It follows that
+\begin{align}
+ \E[\ReLU(U)\ReLU(V)]
+ &=\frac{1}{\pi}\int_{\vartheta-\pi/2}^{\pi/2}
+       \cos\varphi\cos(\varphi-\vartheta)\,\mathrm d\varphi\\
+ &=\frac{\sin\vartheta+(\pi-\vartheta)\cos\vartheta}{2\pi}.
+ \label{qdo:polarint}
+\end{align}
+The second equality uses
+$2\cos\varphi\cos(\varphi-\vartheta)=
+\cos\vartheta+\cos(2\varphi-\vartheta)$.
+Thus the kernel used in the projection audit is
+\begin{equation}
+ \boxed{\displaystyle
+ \kappa(\rho)=
+ \frac{\sqrt{1-\rho^2}+(\pi-\arccos\rho)\rho}{2\pi}.}
+ \label{qdo:kappa}
+\end{equation}
+The endpoint checks are $\kappa(1)=1/2$, $\kappa(0)=1/(2\pi)$,
+and $\kappa(-1)=0$. For nonzero vectors $a,b$ and $X\sim\mathcal N(0,I_d)$,
+positive homogeneity yields
+\begin{equation}
+ \E[\ReLU(a^\top X)\ReLU(b^\top X)]
+ =\norm{a}\norm{b}\,
+ \kappa\!\left(\frac{a^\top b}{\norm{a}\norm{b}}\right).
+ \label{qdo:nonunitkernel}
+\end{equation}
+A zero vector contributes zero and requires no normalized correlation.
+
+\subsection{Teacher moments and normalization}
+\label{qdo:moments}
+
+For a standard normal $Z$, direct integration and symmetry give
+\begin{equation}
+ \E\ReLU(Z)=\frac{1}{\sqrt{2\pi}},\qquad
+ \E\ReLU(Z)^2=\frac12,\qquad
+ \Var(\ReLU(Z))=\frac12-\frac{1}{2\pi}.
+ \label{qdo:normalmoments}
+\end{equation}
+The four preactivations in \eqref{qdo:teacher} are independent standard
+normals. Since $\sum_jc_j=0$ and $\sum_jc_j^2=1$, the target $Y=f_*(X)$
+satisfies
+\begin{equation}
+ \E Y=0,\qquad V_*:=\Var(Y)=\frac12-\frac{1}{2\pi}.
+ \label{qdo:teachermoments}
+\end{equation}
+The historical normalized mean squared error divides by this $V_*$
+\cite{qdo,projection}. This normalization belongs to that teacher; changing
+the target or input distribution requires recomputing it. The kernel
+calculation below does not require a zero target mean, because it subtracts
+second moments with identical means.
+
+The positive and negative coefficients remain inside the double sum in the
+general risk formula. Cross terms can have either sign, even though the final
+conditional variance is nonnegative. Consequently an individual summand is
+not a nonnegative amount of information assigned to one feature. The
+calculation evaluates the complete target, including cancellations between
+its terms. This is also why replacing the target by a visually similar sum
+with different coefficients can change which contrasts must survive.
+
+\subsection{An exact fixed-projection prediction floor}
+\label{qdo:floor}
+
+Let $P=P^\top=P^2$ be an orthogonal projector and let $Y=f_*(X)$ have finite
+second moment. Define
+\begin{equation}
+ m_P(PX)=\E[Y\mid PX],\qquad
+ R(P)=\E[\Var(Y\mid PX)].
+ \label{qdo:conditionalrisk}
+\end{equation}
+For every square-integrable readout $\widehat Y=g(PX)$,
+\begin{equation}
+ \E[(Y-\widehat Y)^2]
+ =R(P)+\E[(m_P(PX)-\widehat Y)^2].
+ \label{qdo:orthogonalrisk}
+\end{equation}
+Indeed, expand $Y-\widehat Y=(Y-m_P)+(m_P-\widehat Y)$ and condition the
+cross term on $PX$. It vanishes because $\E[Y-m_P\mid PX]=0$.
+Thus $R(P)$ is the optimal risk over \emph{all} measurable readouts of the
+fixed projection. A restricted or unsuccessfully trained decoder can incur
+additional error. Changing the projection changes the floor.
+
+For $P=P_W$, the projector onto $\im W$, observing $W^\top X$ is equivalent
+to observing $P_WX$: one direction follows from $W^\top P_W=W^\top$, and the
+other from $P_WX=(W^\top)^+W^\top X$. The superscript $+$ denotes the
+Moore--Penrose pseudoinverse. This explains why the floor diagnoses the
+information available before ReLU \cite{projection}.
+
+The equivalence holds in exact arithmetic, regardless of the coordinates
+chosen within the observed subspace. An invertible change of measurement
+coordinates leaves the floor unchanged. In contrast, two projections of the
+same rank can have different floors because they observe different input
+directions. Ordinary rank therefore cannot distinguish all the successful and
+failed task representations. Numerical conditioning affects the stability of
+a reconstruction and must be evaluated separately from this exact
+information comparison.
+
+\begin{proposition}[Gaussian fixed-projection formula]
+\label{qdo:floorformula}
+Suppose $X\sim\mathcal N(0,I_d)$ and
+$Y=\sum_i c_i\ReLU(q_i^\top X)$ with unit-norm $q_i$.
+Then
+\begin{equation}
+ \boxed{\displaystyle
+ R(P)=\sum_{i,j}c_i c_j
+ \bigl[\kappa(q_i^\top q_j)-\kappa(q_i^\top Pq_j)\bigr].}
+ \label{qdo:exactfloor}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Take independent standard Gaussian vectors $Z,E_1,E_2$ and form
+\begin{equation}
+ X_1=PZ+(I-P)E_1,\qquad X_2=PZ+(I-P)E_2.
+ \label{qdo:copies}
+\end{equation}
+Each copy has covariance $P+(I-P)=I$; their cross-covariance is $P$.
+Conditioned on the shared projection $PZ$, they have independent residuals
+and the correct conditional distribution of $X$. Therefore
+\begin{equation}
+ \E[f_*(X_1)f_*(X_2)]=\E[m_P(PX)^2].
+ \label{qdo:copymoment}
+\end{equation}
+The pair $(q_i^\top X_1,q_j^\top X_2)$ has unit marginal variances and
+correlation $q_i^\top Pq_j$. Applying \eqref{qdo:kappa} term by term gives
+\begin{align}
+ \E[m_P(PX)^2]&=\sum_{i,j}c_i c_j\kappa(q_i^\top Pq_j),\\
+ \E[Y^2]&=\sum_{i,j}c_i c_j\kappa(q_i^\top q_j).
+ \label{qdo:twomoments}
+\end{align}
+Finally $R(P)=\E[Y^2]-\E[m_P(PX)^2]$, proving the formula.
+\end{proof}
+
+For non-unit teacher directions, let $n_i=\norm{q_i}>0$. The extension is
+\begin{equation}
+ R(P)=\sum_{i,j}c_i c_j n_i n_j
+ \left[
+ \kappa\!\left(\frac{q_i^\top q_j}{n_i n_j}\right)
+ -\kappa\!\left(\frac{q_i^\top Pq_j}{n_i n_j}\right)
+ \right].
+ \label{qdo:nonunitfloor}
+\end{equation}
+Both denominators use the \emph{original} norms. The conditional copies keep
+their original marginal variances. Substituting projected norms would compute
+the ReLU kernel of $Pq_i,Pq_j$, a different quantity.
+
+An independent expression for the optimal readout is also available. With
+$\mu_i=q_i^\top PX$ and $\sigma_i^2=\norm{q_i}^2-\norm{Pq_i}^2$, conditional
+Gaussianity gives $q_i^\top X\mid PX\sim\mathcal N(\mu_i,\sigma_i^2)$. Hence
+\begin{equation}
+ m_P(PX)=\sum_i c_i
+ \left[
+ \sigma_i\varphi\!\left(\frac{\mu_i}{\sigma_i}\right)
+ +\mu_i\Phi\!\left(\frac{\mu_i}{\sigma_i}\right)
+ \right],
+ \label{qdo:conditionalmean}
+\end{equation}
+where $\varphi,\Phi$ are the standard normal density and distribution
+function. A term with $\sigma_i=0$ is interpreted as
+$c_i\ReLU(\mu_i)$. This follows by integrating
+$(\mu_i+\sigma_i z)$ over $z>-\mu_i/\sigma_i$.
+
+\begin{proposition}[The required span for the original teacher]
+\label{qdo:spancriterion}
+For the orthonormal teacher in \eqref{qdo:teacher} and standard Gaussian
+inputs, $R(P)=0$ if and only if every $q_j$ belongs to $\im P$.
+\end{proposition}
+
+\begin{proof}
+If all teacher directions are observed, each preactivation and hence the
+target is a function of $PX$, proving sufficiency. Conversely, zero risk
+means the target is almost surely constant on almost every conditional
+fiber. The conditional Gaussian has full support on that fiber. Continuity
+of the ReLU teacher therefore makes it constant everywhere on each such
+fiber. Those observed projections form a dense set; continuity extends this
+invariance to every fiber. Thus for every $v\in\ker P$,
+\begin{equation}
+ f_*(x+t v)=f_*(x)\qquad\text{for every }x\text{ and }t.
+ \label{qdo:fiberinvariance}
+\end{equation}
+Orthonormality permits a nonempty open region where exactly teacher feature
+$j$ is positive. There the gradient is $c_jq_j$, so
+\eqref{qdo:fiberinvariance} implies $c_jq_j^\top v=0$. Every coefficient is
+nonzero, hence $q_j$ is orthogonal to $\ker P$ and belongs to $\im P$.
+\end{proof}
+
+This result is specific to this teacher with nonzero coefficients and
+independently variable orthonormal features. It identifies the four required
+directions without demanding preservation of the other four input
+directions. It also concerns the unrectified observation: preserving that
+span alone does not prove that a later nonlinear representation remains
+sufficient, or that training learns the necessary decoder.
+
+\subsection{CReLU gives an exact floor; a selective hybrid gives a bound}
+\label{qdo:crelu}
+
+CReLU retains both rectified phases of a measured vector:
+\begin{equation}
+ H_c=\CReLU(W^\top X)
+ =\bigl(\ReLU(W^\top X),\ReLU(-W^\top X)\bigr).
+ \label{qdo:creluobservation}
+\end{equation}
+Subtraction recovers $W^\top X$ exactly. Conversely, $H_c$ is a deterministic
+function of that measurement. Consequently conditioning on $H_c$, $W^\top X$,
+or $P_WX$ supplies identical information, and
+\begin{equation}
+ \inf_g\E[(Y-g(H_c))^2]=R(P_W).
+ \label{qdo:crelufloor}
+\end{equation}
+This is the measurement-preservation property behind the original CReLU
+filter-span reconstruction proposition, without max-pooling \cite{crelu}.
+It does not restore any component in $\ker W^\top$.
+
+Now consider the selective hybrid
+\begin{equation}
+ H=\bigl(\ReLU(W^\top X),\CReLU(U^\top X)\bigr),
+ \qquad M=[W\ U],\qquad T=P_MX.
+ \label{qdo:hybrid}
+\end{equation}
+Here $H$ is a function of $T$, but the reverse need not hold. Set
+$m_M(T)=\E[Y\mid T]$ and $R_H=\E[\Var(Y\mid H)]$.
+The conditional variance decomposition, using that $H$ is determined by $T$,
+gives
+\begin{align}
+ R_H
+ &=R(P_M)+\E[\Var(m_M(T)\mid H)]\label{qdo:hybridgap}\\
+ &=R(P_M)+\E[(m_M(T)-\E[Y\mid H])^2]
+ \ \ge\ R(P_M).\notag
+\end{align}
+For completeness, write
+$Y-\E[Y\mid H]=(Y-m_M)+(m_M-\E[Y\mid H])$.
+The cross term again vanishes on conditioning on $T$, and the tower property
+gives $\E[m_M\mid H]=\E[Y\mid H]$. This proves the exact gap formula.
+
+Equality holds precisely when $m_M(T)$ is recoverable from $H$ almost surely.
+Recovering all of $T$ is sufficient but stronger than necessary. Merely
+making $\im M$ contain the teacher span proves no such equality: the
+unrectified measurements can contain a distinction that the main ReLU branch
+still deletes.
+
+Accordingly, a positive augmented-span floor rules out exact target recovery
+from the hybrid. A zero augmented-span floor leaves the second term of
+\eqref{qdo:hybridgap} to be checked. This term measures the target-relevant
+ambiguity introduced by the actual retained observation, after all signed
+measurements that were available before rectification have been taken into
+account. It gives a precise test of whether a proposed selective side
+channel supplies enough information.
+
+An exact Gaussian example demonstrates a strict gap. Let
+$X\sim\mathcal N(0,I_2)$, $W=e_1$, $U=e_2$, and
+$Y=\ReLU(-X_1)$. Then $M=I_2$ and $R(P_M)=0$. The side channel reveals $X_2$,
+which is independent of $Y$. On $X_1>0$ the target is zero; on $X_1\le0$ the
+main observation is always zero and the conditional target is half-normal.
+Therefore
+\begin{equation}
+ R_H=\tfrac12\Var(-X_1\mid X_1\le0)
+ =\frac12-\frac{1}{\pi}>0.
+ \label{qdo:strictgap}
+\end{equation}
+Thus even complete augmented linear coverage can coexist with strictly
+positive optimal prediction error after selective rectification.
+
+\subsection{Scope of the diagnostic}
+\label{qdo:scope}
+
+The conditional-risk identities hold for any square-integrable target. The
+closed form \eqref{qdo:exactfloor} additionally requires Gaussian inputs,
+a fixed linear observation, and a ReLU teacher of the stated form. Arbitrary
+hidden states, nonlinear transition maps, pooling, quantization, or a different
+input law do not automatically satisfy those assumptions. The algebraic CReLU
+inverse also presumes that both measured phases remain available without
+additional destructive processing.
+
+Training the matrices first and then freezing them is compatible with the
+fixed-projection calculation. Choosing a different measurement matrix as a
+function of the current input is a different observation model: the selection
+rule and any retained selector must be included in the conditioning
+information. Substituting an input-dependent projector into the fixed-matrix
+formula is not justified by the derivation above. Such adaptive records need
+their own sufficiency argument or conditional-risk calculation.
+
+Finally, $R_H=0$ states target sufficiency almost surely under the chosen
+distribution. A guarantee for every admissible input requires a pointwise
+factorization through the retained representation. Neither a successful probe
+nor failure to find a collision supplies that proof. These distinctions let the
+projection audit support the proposal as a precise diagnostic without turning
+it into a general information-preservation theorem.
