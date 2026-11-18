@@ -1,0 +1,807 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array,tabularx,multirow}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{natbib}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{xcolor}
+\usepackage{float}
+\usepackage{siunitx}
+\usepackage{authblk}
+\usepackage{setspace}
+\usepackage{longtable}
+\usepackage{fancyhdr}
+\usepackage{pdflscape}
+\usepackage{seqsplit}
+\usepackage{xspace}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  citecolor=black,
+  urlcolor=blue,
+  pdfauthor={Jared Castorena},
+  pdftitle={Recurrent Dragon: Causal Trajectory Distillation for Exact Predictive Streaming of a Frozen 466-GB Mixture-of-Experts Model}
+}
+\captionsetup{font=small,labelfont=bf}
+\setlist{nosep,leftmargin=*}
+\setlength{\parindent}{1.25em}
+\setlength{\parskip}{0pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newcommand{\Dragon}{\textsc{Recurrent Dragon}\xspace}
+\newcommand{\Ptwo}{\mathrm{P2}}
+\newcommand{\TopK}{\operatorname{TopK}}
+\newcommand{\bytes}{\mathrm{B}}
+
+\title{\Large\bfseries Recurrent Dragon: Causal Trajectory Distillation for Exact Predictive Streaming of a Frozen 466-GB Mixture-of-Experts Model\\[0.4em]
+\large Learning Future Expert Demand Without Giving the Predictor Authority Over Model Execution}
+\author{Jared Castorena}
+\affil{1728 Studios LLC}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Sparse mixture-of-experts (MoE) models separate total capacity from per-token computation, but expert offloading often places weight movement on the inference critical path because native demand is revealed only after routing. We ask whether a small post-hoc model can learn a frozen MoE's layerwise computational trajectory well enough to expose future expert demand early while remaining entirely outside the correctness path.
+
+We introduce \Dragon, an approximately 1.45-million-parameter causal recurrent sidecar for an 11-shard Kimi K3 GGUF checkpoint containing 92 routed layers, 896 experts per layer, and top-16 routing. For source layer $L$, Dragon combines the frozen causal projection $W_{L+1}x_L$ with a learned layer-conditioned recurrent correction and emits only two advisory candidates for layer $L+1$. The native K3 router remains authoritative. Incorrect predictions may waste I/O or arrive late, but they cannot change router IDs, weights, tensors, logits, or generated tokens.
+
+The predictor was developed under a prompt-disjoint $8/8/8$ train/validation/untouched-heldout protocol with forecast-before-reveal auditing. On the one-shot heldout split, Dragon improves decode P2 target recall from $11.3625\%$ for the true zero-correction causal base to $12.2832\%$, an absolute gain of $0.9208$ percentage points with a $95\%$ prompt-cluster bootstrap interval of $[0.8521,0.9959]$ points. Because P2 predicts only two experts against a top-16 target, this is $98.27\%$ candidate precision. Dragon yields 429 additional correct expert hits across 2,912 forecasts, reduces exposed exact demand by 722,304 bytes per forecast, and lowers cold overfetch from 530 false expert triples to 101. The byte accounting closes exactly: $429\times4{,}902{,}912=2{,}103{,}349{,}248$ bytes.
+
+We then integrate the frozen predictor into an exact streaming runtime on a severely memory-constrained host. A reversible 64-expert-per-layer RAM tier holds 26.89 GiB, Dragon issues P2 advisory 256 KiB readahead for the dynamic tail, and the original GGUF mmap path demand-loads every miss. Across four order-controlled live pairs on three fixed prompts, every Dragon arm is faster: median wall improvement is $6.03\%$, the worst pair still improves $4.85\%$, traffic remains between $1.01236\times$ and $1.01580\times$ demand-only, process swaps remain zero, and full router/output captures are byte-identical. A complete multi-token answer also preserves exact output while all 13,468 prefetch jobs complete before their target routes.
+
+The result is not a universal throughput claim; several recent systems report larger gains on different models and hardware. The contribution is a distinct exact-by-construction design point: post-hoc recurrent trajectory learning, comparison against the true frozen causal base, one-shot heldout validation, reversible multi-tier residency, advisory-only page-cache streaming, and a guarded champion/challenger path for later sidecar improvement without foreground self-modification.
+\end{abstract}
+
+\section{Introduction}
+
+Sparse MoE architectures allow total model capacity to grow much faster than active per-token compute \citep{shazeer2017,kimi2026}. That sparsity does not automatically reduce the systems cost of making expert weights available. When most experts live outside accelerator memory, the usual sequence is
+\begin{equation}
+\text{route}\;\longrightarrow\;\text{discover demand}\;\longrightarrow\;\text{load}\;\longrightarrow\;\text{execute}.
+\end{equation}
+The model computes sparsely, but the selected weights arrive late.
+
+The desired sequence is
+\begin{equation}
+\text{predict}\;\longrightarrow\;\text{prefetch}\;\longrightarrow\;\text{native route}\;\longrightarrow\;\text{execute}.
+\end{equation}
+The hard requirement is correctness isolation. A prefetch predictor should control \emph{when} immutable expert bytes move, not \emph{which} experts the model executes.
+
+This paper develops that design for a frozen Kimi K3 checkpoint. The local artifact maps 466,362,358,144 bytes of tensor payload, of which 404,156,841,984 bytes are routed-expert tensors. It contains 93 blocks: one dense block followed by 92 MoE blocks. Each sparse layer selects 16 of 896 routed experts. One Gate/Up/Down expert triple occupies 4,902,912 bytes, so a complete top-16 route across 92 layers addresses 7,217,086,464 bytes (6.7214 GiB) of routed-expert storage per token before reuse.
+
+The central observation is that future routing is not created from nothing when the future router fires. It is a deterministic readout of a state already being formed upstream. Earlier experiments on Laguna-S-2.1 showed that carrying identical numeric expert IDs across layers recovered only $3.35\%$ of the next top-five within eight candidates, whereas applying the future router matrix to the previous hidden state recovered $86.70\%$ \citep{castorenaDragon2026}. The useful object was residual-state geometry, not numeric identity persistence.
+
+That observation leads to an exact decomposition. Let $x_L$ and $x_{L+1}$ be adjacent router inputs and $W_{L+1}$ the frozen target-layer router matrix. Then
+\begin{equation}
+\label{eq:decomp}
+z_{L+1}
+= W_{L+1}x_{L+1}
+= W_{L+1}x_L + W_{L+1}(x_{L+1}-x_L).
+\end{equation}
+The first term is available early. The second is the projected effect of computation that has not yet completed. Future-route prediction therefore becomes a residual-learning problem:
+\begin{equation}
+\hat z_{L+1}=W_{L+1}x_L+\Delta_\theta(q_L).
+\end{equation}
+
+\Dragon does not attempt to reproduce K3's full computation. It learns only a compact correction that improves the ordering of two high-value prefetch candidates. The real router remains the source of truth.
+
+\paragraph{Contributions.}
+\begin{enumerate}
+  \item We formulate future expert demand as \emph{causal trajectory distillation}: a recurrent, layer-conditioned correction over an exact frozen future-router projection.
+  \item We implement a forecast-before-reveal protocol in which every prediction is persisted before the target route is exposed, with prompt-, trajectory-, model-, and artifact-level hash checks.
+  \item We use subtractive ablations to remove mechanisms that do not earn their runtime cost. Ordinary BPTT and no explicit surprise input are selected; backward-growing BPTT and residual surprise are not.
+  \item We demonstrate one-shot untouched generalization over the true no-model causal baseline, not merely over random recurrent initialization.
+  \item We convert P2 predictions into exact page-cache streaming with reversible K64 RAM residency, exact mmap fallback, byte-identical model captures, and repeatable host-local wall-time improvement.
+\end{enumerate}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/figure7_evidence_ladder.pdf}
+\caption{The evidence ladder. Separate gates establish mechanism, causal instrumentation, untouched generalization, live page residency, and finally controlled end-to-end improvement.}
+\label{fig:evidence}
+\end{figure}
+
+\section{Relation to the Exact Local Coalition Game}
+
+Our earlier paper, \emph{The Exact Local Coalition Game of Sparse Mixture-of-Experts}, exhaustively measured every survivor subset of the naturally routed top-four coalition in gpt-oss-120b \citep{castorenaCoalition2026}. It showed that downstream omission damage is strongly non-additive, that scalar expert attribution does not generally preserve the best same-cardinality coalition, and that a cheap ExtraTrees predictor failed its heldout deployment gate. That work ended with a precise open problem: predict enough of the local state-conditioned game cheaply and reliably to realize the measured oracle opportunity.
+
+\Dragon is a companion result, not a direct solution to that exact coalition-damage problem. The two papers study different decision axes:
+\begin{align}
+\text{Paper 1:}&\quad \text{Given a native active coalition, which survivor subset preserves output?}\\
+\text{Paper 2:}&\quad \text{Before the next router fires, which native experts will it request?}
+\end{align}
+The first concerns \emph{execution utility after routing}. The second concerns \emph{future demand before routing}. Their eventual combination is natural: a future-route predictor can move candidate weights early, while a coalition-utility predictor could decide whether every selected computation is necessary. The current paper preserves all 16 native K3 experts and claims no omission safety.
+
+The conceptual bridge is the failed cheap predictor in Paper 1. If post-router summaries do not expose a reliable decision object, inspect where routing data comes from. A router reads the residual state. The future route may therefore be partially decodable before it is explicitly expressed.
+
+\section{Problem Formulation and Safety Contract}
+
+\subsection{Frozen MoE trajectory}
+
+Consider a frozen sparse MoE with routed layers $L=1,\ldots,T$, $N$ experts per routed layer, and native top-$k$ selection. In K3, $T=92$, $N=896$, and $k=16$. For a token trajectory, let
+\begin{itemize}
+  \item $x_L$ be the target-router input available after layer $L$;
+  \item $z_L=W_Lx_L$ be the raw native router field;
+  \item $a_L$ be the immutable selection bias;
+  \item $s_L=\sigma(z_L)+a_L$ be the selection field;
+  \item $S_L=\TopK_k(s_L)$ be the exact native route.
+\end{itemize}
+
+Dragon observes only information available through source layer $L$ and emits an advisory candidate set $C_{L+1}$ of size $p=2$.
+
+\subsection{Causal filtration}
+
+Let $\mathcal{F}_L$ contain all actual observations revealed through layer $L$. A deployable forecast must be $\mathcal{F}_L$-measurable:
+\begin{equation}
+\hat z_{L+1}=f_\theta(\mathcal{F}_L).
+\end{equation}
+The target $z_{L+1}$ is revealed only after the forecast is persisted. It may influence $\hat z_{L+2}$ through the next observation, but it may not repair $\hat z_{L+1}$.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/figure1_causal_loop.pdf}
+\caption{The deployed causal loop. The native route re-anchors the recurrent state only for the following forecast. Prediction affects page timing; exact mmap demand remains authoritative.}
+\label{fig:causal}
+\end{figure}
+
+\subsection{Exact advisory byte accounting}
+
+All K3 routed expert triples have the same stored size $B=4{,}902{,}912$ bytes in the local checkpoint. This makes P-budget traffic exactly auditable.
+
+\begin{proposition}[Advisory prefetch accounting]
+\label{prop:accounting}
+Let the native route contain $k$ equal-size expert triples, let an advisory predictor emit $p$ candidate triples, and let $h=|C\cap S|$ be the number of useful candidates. Under cold per-row accounting with exact fallback,
+\begin{align}
+D_{\mathrm{demand}} &= kB,\\
+D_{\mathrm{exposed}} &= (k-h)B,\\
+D_{\mathrm{total}} &= (k+p-h)B,\\
+\frac{D_{\mathrm{total}}}{D_{\mathrm{demand}}} &= 1+\frac{p-h}{k}.
+\end{align}
+Candidate precision is $h/p$ and target recall is $h/k$.
+\end{proposition}
+
+\begin{proof}
+Every useful candidate overlaps one expert that exact demand would otherwise load. Every false candidate adds one extra triple. Exact fallback still loads all $k-h$ uncovered native experts. Summing useful, false, and fallback triples yields the identities.
+\end{proof}
+
+\begin{corollary}[P2 ceiling]
+For $p=2$ and $k=16$, target recall is at most $2/16=12.5\%$, and candidate precision equals eight times target recall.
+\end{corollary}
+
+This relationship is central to interpreting our results. A P2 recall of $12.28\%$ is not low-quality prediction; it is near-perfect precision under a deliberately narrow budget.
+
+\subsection{Correctness isolation}
+
+Dragon never changes $S_L$, the native route weights, the expert bytes, or the operator graph. Its candidates only trigger advisory reads of original GGUF file ranges.
+
+\begin{proposition}[Correctness isolation]
+Assume immutable model files, unchanged native routing, and an exact demand path that loads every missing selected expert. Then advisory prefetch can alter page residency and timing but not the mathematical model execution.
+\end{proposition}
+
+This is a design claim. The implementation is additionally checked empirically with byte-identical router logits, selected IDs, selected weights, output logits, and token IDs in controlled P0/P2 comparisons.
+
+\section{Recurrent Dragon Architecture}
+
+\subsection{Layer-conditioned observation}
+
+The structural configuration was deliberately small. It used route embedding width 8, competition-shape width 16, layer embedding width 4, phase embedding width 2, GRU state width 32, and rank-8 target heads. The initial full scaffold contained 1,454,840 F32 parameters (5,819,360 bytes); the selected no-surprise arm differs by less than 0.1\% in parameter count.
+
+At layer $L$, the route embedding is
+\begin{equation}
+r_L=\sum_{i\in S_L}\bar w_{L,i}E_{L,i},
+\end{equation}
+where expert embeddings are indexed by $(L,i)$. Numeric expert identity is never shared across layers.
+
+The final selected observation concatenates:
+\begin{enumerate}
+  \item the weighted route embedding $r_L$;
+  \item the descending top 16 values of the actual source selection field;
+  \item a learned layer embedding;
+  \item a prefill/decode phase embedding.
+\end{enumerate}
+
+The recurrent update is a standard GRU:
+\begin{equation}
+q_L=\mathrm{GRU}(q_{L-1},e_L).
+\end{equation}
+
+\subsection{Frozen base plus factorized correction}
+
+The exact target-router matrix and immutable target bias are read from the verified GGUF inventory. The base is
+\begin{equation}
+b_{L+1}=W_{L+1}x_L.
+\end{equation}
+The layer-specific rank-8 head predicts
+\begin{equation}
+\Delta_{L+1}=(q_LU_{L+1})V_{L+1}+c_{L+1},
+\end{equation}
+then
+\begin{equation}
+\hat z_{L+1}=b_{L+1}+\Delta_{L+1},\qquad
+\hat s_{L+1}=\sigma(\hat z_{L+1})+a_{L+1}.
+\end{equation}
+The runtime emits
+\begin{equation}
+C_{L+1}=\TopK_2(\hat s_{L+1}).
+\end{equation}
+
+\subsection{Training objective}
+
+Training uses complete causal forward unrolls. The loss combines normalized full-field Huber regression with a target-top-16 threshold ranking term:
+\begin{equation}
+\mathcal{L}=\sum_L \left[
+\mathcal{L}_{\mathrm{Huber}}(\hat z_{L+1},z_{L+1})
++\lambda_{\mathrm{rank}}\mathcal{L}_{\mathrm{rank}}(\hat s_{L+1},S_{L+1})
+\right].
+\end{equation}
+The population runs used 1,000 updates, batch size 4, phase-stratified 50/50 prefill/decode sampling, learning rate $10^{-3}$, weight decay $10^{-4}$, gradient clip 1, and ranking weight 0.1.
+
+\subsection{Ablation-driven simplification}
+
+The original research plan included two attractive additions:
+\begin{itemize}
+  \item terminal-to-front backward-growing BPTT;
+  \item explicit prediction surprise, including $z_L-\hat z_L$.
+\end{itemize}
+Neither was selected.
+
+Under equal optimizer updates, ordinary BPTT received 364,000 supervised transition exposures and achieved $12.129\%$ validation decode P2 recall, while backward-growing received 183,820 exposures and achieved $11.923\%$. Ordinary won at every candidate budget in both prefill and decode. Because exposure differs, a matched-exposure backward study remains diagnostic, but backward-growing is not the leading schedule.
+
+With ordinary BPTT, no-surprise achieved $12.1373\%$ validation decode P2 recall, while detached residual surprise achieved $12.1287\%$. The difference is tiny, so it does not prove surprise is harmful in general. It does reject surprise as a required input for the frozen winner. Prediction-only was statistically tied with no-surprise, and actual-field-only did not displace it.
+
+\begin{table}[t]
+\centering
+\caption{Key validation decisions. Values are decode P2 target recall. The random initial model is not the correct no-model baseline.}
+\label{tab:ablations}
+\begin{tabular}{lcc}
+\toprule
+Arm & Recall (\%) & Decision \\
+\midrule
+Random recurrent initialization & 11.268 & Diagnostic only \\
+Backward-growing, residual surprise & 11.923 & Not selected \\
+Ordinary, residual surprise & 12.129 & Not selected \\
+Ordinary, no surprise & \textbf{12.1373} & Frozen winner \\
+True zero-correction base & 11.2637 & Required baseline \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Causal Instrument and Population Protocol}
+
+\subsection{Structural gate}
+
+Before real training, the causal scaffold was exercised with deterministic random weights. Synthetic tests proved that changing the target truth cannot change its already-issued forecast, but can change the following forecast after reveal. Terminal-layer loss propagated into early-layer representations, NumPy inference matched CPU-Torch training, backward-growing masks were exact, and prompt/token trajectories reset independently.
+
+A full 92-layer structural replay produced two trajectories, 182 forecast/reveal transitions, 182 exact source-to-target alignment checks, and zero maximum alignment error. Forecasts were fsync'd into an append-only chained SHA-256 ledger before reveal.
+
+\subsection{Integrity pilot}
+
+A frozen six-prompt pilot then exercised the real collector. It captured 663 token trajectories, 60,996 layer records, and 3,942,568,276 payload bytes. Every prompt completed four decode evaluations, every trajectory contained all 92 routed layers, next-router alignment error was zero, and process swaps were zero. This corpus was reserved for integrity only and was never allowed to select the model.
+
+\subsection{Frozen population corpus}
+
+The 24-prompt population was frozen before fitting. It contains eight categories---factual, quantitative, code, summary, rewrite, planning, logic, and structured extraction---with one prompt from each category in each split.
+
+\begin{table}[t]
+\centering
+\caption{Prompt-disjoint population corpus. Splits are determined by whole rendered-prompt hashes.}
+\label{tab:corpus}
+\begin{tabular}{lrrrr}
+\toprule
+Split & Prompts & Token trajectories & Layer records & Role \\
+\midrule
+Train & 8 & 935 & 86,020 & Fit weights \\
+Validation & 8 & 920 & 84,640 & Select one configuration \\
+Heldout & 8 & 32 decode & 2,912 forecasts & Score once \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Train and validation both passed exact 92-layer coverage, hash checks, prompt disjointness, hardware provenance, and zero next-router alignment error. Heldout was structurally collected and then consumed only by the frozen evaluator.
+
+\subsection{The baseline correction}
+
+A critical correction surfaced before heldout. The trainer's reported ``initial'' metric was a random recurrent correction added to the base, not the base itself. Training could appear to improve simply by learning to remove random noise. We therefore replayed the true zero-correction baseline
+\begin{equation}
+\hat z_{L+1}^{(0)}=W_{L+1}x_L
+\end{equation}
+with the same immutable target bias, prompts, phases, and P1/P2/P4/P8 accounting. Dragon was promoted only after beating this baseline on validation.
+
+\subsection{Semantic export certificate}
+
+After 1,000 updates, NumPy and Torch logits differed by $2.38\times10^{-6}$, slightly above an initial fixed $2\times10^{-6}$ threshold, while all 83,720 P1/P2/P4/P8 candidate rows matched exactly. The fixed tolerance was therefore replaced by the actual deployment invariant: finite values, exact P2 sets, and worst-case score error below half the minimum P2 inclusion margin.
+
+If the second- and third-ranked scores differ by $m$ and each implementation differs by at most $\epsilon$, then $2\epsilon<m$ guarantees the P2 boundary cannot flip. This is stricter semantically than moving a decimal threshold.
+
+\section{Untouched Heldout Result}
+
+The frozen configuration was ordinary forward BPTT, base-plus-correction prediction, no explicit surprise, and two advisory candidates. No fitting or selection used heldout.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/figure2_heldout_recall.pdf}
+\caption{One-shot untouched heldout decode P2 recall. The 12.5\% line is the mathematical ceiling for two candidates against a top-16 truth set.}
+\label{fig:heldout}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Frozen heldout P2 result over 2,912 causal forecasts.}
+\label{tab:heldout}
+\begin{tabular}{lrr}
+\toprule
+Metric & \Dragon & Frozen causal base \\
+\midrule
+Target recall & 0.12283225 & 0.11362466 \\
+Candidate precision & 98.2658\% & 90.8997\% \\
+Mean exposed bytes/row & 68,810,820.92 & 69,533,124.92 \\
+Cold traffic/demand-only & 1.00216775$\times$ & 1.01137534$\times$ \\
+Correct candidate slots & 5,723 & 5,294 \\
+False candidate slots & 101 & 530 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The paired prompt-cluster bootstrap used 10,000 replicates and seed 1729. The recall gain is $+0.00920759$, with a $95\%$ percentile interval of $[+0.00852078,+0.00995879]$. The exposed-demand reduction is 722,304 bytes per row, with interval $[668{,}426,781{,}233]$ bytes.
+
+\subsection{What the recall number means}
+
+P2 supplies 5,824 candidate slots over the heldout set. Dragon gets 5,723 correct and only 101 wrong. The frozen base gets 5,294 correct and 530 wrong. Thus Dragon converts 429 candidate errors into useful hits.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/figure3_precision_traffic.pdf}
+\caption{The learned correction moves the operating point toward both higher candidate precision and lower cold overfetch.}
+\label{fig:precision}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Exact heldout byte accounting. One expert triple is 4,902,912 bytes.}
+\label{tab:accounting}
+\begin{tabular}{lrrr}
+\toprule
+Quantity & \Dragon & Base & Difference \\
+\midrule
+Useful candidate hits & 5,723 & 5,294 & +429 \\
+False candidate triples & 101 & 530 & -429 \\
+Cold overfetch bytes & 495,194,112 & 2,598,543,360 & -2,103,349,248 \\
+Exposed-demand bytes & 200,377,110,528 & 202,480,459,776 & -2,103,349,248 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The accounting is self-consistent:
+\begin{equation}
+429\times4{,}902{,}912
+=722{,}304\times2{,}912
+=2{,}103{,}349{,}248\ \text{bytes}.
+\end{equation}
+The false-candidate rate falls from $9.10\%$ to $1.73\%$, an $80.94\%$ relative reduction. The predictor artifact is only about $0.00125\%$ of the checkpoint tensor payload, roughly 80,000 times smaller.
+
+\paragraph{Statistical scope.}
+The interval is clustered at the prompt level, which is the correct independence unit for this corpus. It still contains only eight clusters. The result is decisive for the precommitted split but should not be read as a population-wide universal interval.
+
+\section{Why a Reversible Memory Hierarchy Is Necessary}
+
+\subsection{The storage bottleneck}
+
+The first CPU-only K3 token took 272.34 seconds cold. Replaying the identical route from OS cache took 6.205 seconds, about 43.9 times faster. A subsequent changed token reintroduced new expert pages. This isolates first-touch expert I/O as the dominant cold bottleneck.
+
+An exact-route oracle provides a second upper bound. When the complete 6.7214 GiB routed expert set was absent, one-token process wall was 158.49 seconds and internal evaluation was 75.607 seconds. When those exact pages were resident, process wall fell to 122.28 seconds and internal evaluation to 6.126 seconds. Concurrent exact-oracle prefetch reduced cold process wall to 145.49 seconds, an 8.20\% reduction, but it knew the route in advance and therefore was not deployable.
+
+\subsection{Static residency cannot replace the long tail}
+
+A train-selected static atlas ranks experts independently within each layer. It is useful for residency but fails destructive pruning.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/figure4_k64_atlas.png}
+\caption{A small static tier captures disproportionate validation demand, but complete native routes almost always include long-tail experts outside the tier.}
+\label{fig:atlas}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Validation sequential-decode static atlas. Complete containment is the fraction of layer rows whose entire native top-16 falls inside the static tier.}
+\label{tab:atlas}
+\begin{tabular}{rrrrrr}
+\toprule
+$K$ & RAM GiB & ID recall & Weight mass & Full contained & Cold misses/layer \\
+\midrule
+16 & 6.72 & 22.86\% & 28.59\% & 0.000\% & 12.34 \\
+32 & 13.44 & 32.80\% & 39.08\% & 0.000\% & 10.75 \\
+64 & 26.89 & 44.44\% & 51.21\% & 0.068\% & 8.89 \\
+128 & 53.77 & 58.64\% & 65.59\% & 1.223\% & 6.62 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+K64 holds only $64/896=7.14\%$ of the routed expert identities per layer yet captures 44.44\% of selected IDs and 51.21\% of routing weight mass. It still contains the complete route in only 0.068\% of rows. The correct architecture is therefore reversible:
+\begin{equation}
+\boxed{\text{K64 RAM hot tier}+\text{Dragon P2 overlay}+\text{exact mmap tail}.}
+\end{equation}
+
+\section{Exact Predictive Streaming Runtime}
+
+\subsection{Delivery engineering}
+
+Offline prediction is useful only if exact pages arrive early. The storage stack uses a PERC H710P-backed rotational volume whose effective request behavior made one readahead call per 1.56 MiB projection insufficient. The promoted worker uses 256 KiB chunked readahead: seven calls per projection and 42 calls per P2 job, plus one \texttt{POSIX\_FADV\_WILLNEED} per projection.
+
+Several negative results were retained:
+\begin{itemize}
+  \item broad 144/160 GiB mlock starved the flexible page cache;
+  \item the all-layer CUDA pager was slower and failed its numerical gate;
+  \item synchronous page-fault delivery created CPU/BLAS contention;
+  \item unchunked readahead left most target pages absent;
+  \item high OpenBLAS thread count interfered with inference.
+\end{itemize}
+The final deployment uses one persistent bounded serial worker, K64 residency, 256 KiB readahead, and \texttt{OPENBLAS\_NUM\_THREADS=1}.
+
+\subsection{Bounded mechanism gates}
+
+The first corrected L1$\rightarrow$L2 live test predicted two experts, both in the native top-16. Six original IQ1\_XXXS slabs were resident 42.5 ms before the target router callback. The L2$\rightarrow$L3 test carried recurrent state through earlier actual K3 behavior and was ready 75.7 ms early.
+
+A seven-target persistent-worker span then completed every job without queue drops or errors. All 14 P2 candidates appeared in their corresponding exact routes, target-time residency was complete, and the five full-model P0/P2 capture files remained byte-identical.
+
+These are mechanism checks, not population estimates.
+
+\subsection{Complete-answer gate}
+
+The strict XTML query \texttt{Reply with exactly OK.} produced identical P0/P2 outputs, reasoning bytes, answer bytes, and all sampled token IDs. Each arm contained 148 trajectories: 95 prefill and 53 decode. P2 completed 13,468 of 13,468 target jobs with no queue reject, worker failure, late target, or late useful hit. Conservative traffic was $1.007884\times$ demand-only.
+
+Process wall improved from 2,853.33 to 2,814.61 seconds ($1.36\%$), while measured runtime total improved from 2,798.139 to 2,683.053 seconds ($4.11\%$). Major faults fell 11.42\%; filesystem input increased 3.81\%. The gain was prefill-led: prompt evaluation improved about 6.48\%, while decode evaluation regressed about 1.34\%. This transparent phase split is important; the complete pair proves exactness and a positive total result, not universal decode acceleration.
+
+\subsection{Order-controlled promotion pairs}
+
+The host-local promotion evidence uses four selected-cold P0/P2 pairs across comma, period, and question-mark prompts with both arm orders represented.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.85\textwidth]{figures/figure5_runtime_pairs.png}
+\caption{All four controlled selected-cold pairs favored the frozen K64+Dragon P2 path.}
+\label{fig:runtime}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Controlled live promotion evidence. Negative values in the source reports are shown here as positive speed improvements.}
+\label{tab:runtime}
+\begin{tabular}{lrr}
+\toprule
+Pair & Wall improvement & Exact capture equality \\
+\midrule
+Comma A & 4.851\% & Pass \\
+Comma B & 7.923\% & Pass \\
+Period & 6.639\% & Pass \\
+Question mark & 5.429\% & Pass \\
+\midrule
+Median & 6.034\% & 4/4 pass \\
+Mean & 6.211\% & 4/4 pass \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Across the four pairs, conservative traffic stayed between $1.01236\times$ and $1.01580\times$ demand-only, process swaps were zero, and the excluded physical GPU remained idle. There was no regressing pair under the preregistered p95 gate.
+
+With only four fixed-prompt pairs, this is descriptive host-local evidence rather than a broad latency confidence interval. Under a simple independent sign null, four of four improvements correspond to a one-sided sign-test probability of $1/16=0.0625$; we do not present it as a formal population significance claim.
+
+\section{Candidate Budget and Operating Point}
+
+The first all-layer development replay made the traffic tradeoff clear.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.82\textwidth]{figures/figure6_budget_tradeoff.png}
+\caption{Development replay before population fitting. Wider budgets cover more target experts but rapidly increase false-candidate traffic. P2 was frozen as the first live budget.}
+\label{fig:budget}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Initial one-prompt development replay. These values selected the traffic boundary, not the final predictor.}
+\label{tab:budget}
+\begin{tabular}{rrrr}
+\toprule
+Budget & Candidate precision & Target recall & Cold traffic/demand \\
+\midrule
+P1 & 88.5\% & 5.53\% & 1.007$\times$ \\
+P2 & 84.1\% & 10.51\% & 1.020$\times$ \\
+P4 & 80.9\% & 20.23\% & 1.048$\times$ \\
+P8 & 71.4\% & 35.68\% & 1.143$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The final heldout Dragon changes the P2 economics dramatically: precision rises from the early development replay's 84.1\% to 98.27\% on the frozen heldout population, while cold traffic falls to $1.0022\times$ demand-only. These are not matched datasets, so the difference is a development progression rather than an estimator of training gain. The valid causal comparison remains Dragon versus the frozen base on the same heldout rows.
+
+\section{Why the System Works}
+
+The evidence supports four linked explanations.
+
+\subsection{Future routing is latent upstream}
+
+The target route is a deterministic readout of a future residual state. The base $W_{L+1}x_L$ exposes a large fraction of the future field before layer $L+1$ is reached. This agrees with FATE's cross-layer gate observation \citep{fang2025} and with pre-attention prediction results showing that expert ranking can be exposed earlier than the native gate point \citep{zhu2025}.
+
+\subsection{The base is incomplete}
+
+The one-shot heldout result directly rejects the hypothesis that the causal base already contains all cheap signal. The learned correction adds 429 useful hits and removes 429 false candidates. This is the first result in the project that isolates learned value beyond $W_{L+1}x_L$ itself.
+
+\subsection{The recurrent state approximates the missing projected update}
+
+Equation~\eqref{eq:decomp} identifies the missing object as $W_{L+1}(x_{L+1}-x_L)$. Dragon need not reconstruct the entire hidden update. It only needs a low-dimensional function that preserves enough target-expert ordering for a P2 decision. The GRU is a compact decoder for that future-relevant projected update.
+
+This interpretation remains partially unresolved. The frozen sidecar as a whole beats the causal base, but the final K3 experiment did not complete the strongest parameter-matched feed-forward or detached-state control originally preregistered. Therefore the data establish value for the selected recurrent model, not a causal proof that recurrence itself is indispensable.
+
+\subsection{Actual routing repeatedly re-anchors the approximation}
+
+Dragon is not an open-loop 92-layer rollout. Every native layer supplies a fresh actual route and score shape. Errors therefore do not accumulate without correction across the stack.
+
+\subsection{P2 creates favorable asymmetric economics}
+
+A true positive hides one future 4.9 MB expert triple. A false positive adds one triple. A false negative simply leaves ordinary demand behavior in place. No prediction changes model semantics. At 98.27\% candidate precision, the false-positive penalty is small enough that the memory system can trade approximately 0.22\% offline cold overfetch for reduced exposed demand.
+
+\section{Comparison with Current State of the Art}
+
+Raw speedup percentages across MoE systems are not directly comparable. Models, expert counts, cache capacities, transfer media, batch sizes, correctness modes, and baselines differ substantially. Several published systems report larger headline speedups than our current host-local 6\% result. Our claim is instead about the combination of trajectory learning, frozen-model retrofit, causal evaluation, and exact advisory-only execution.
+
+\begin{landscape}
+\begin{table}[p]
+\centering
+\caption{Architectural positioning. Reported headline numbers come from each paper's own setting and are not a matched leaderboard.}
+\label{tab:sota}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.35cm}>{\raggedright\arraybackslash}p{3.15cm}>{\raggedright\arraybackslash}p{2.45cm}>{\raggedright\arraybackslash}p{2.55cm}>{\raggedright\arraybackslash}p{3.25cm}>{\raggedright\arraybackslash}X}
+\toprule
+Method & Prediction signal & Parent model & Route authority & Reported result & Distinction relative to Dragon \\
+\midrule
+MoE-Infinity \citep{xue2024} & Request activation traces and cache policy & Frozen & Native route retained & 3.1--16.7$\times$ latency improvement & Trace/cache system; no post-hoc recurrent future-field learner \\
+FATE \citep{fang2025} & Adjacent-layer gate input & Frozen & Native route retained & Up to 4.5$\times$ prefill and 4.1$\times$ decode vs load-on-demand & Training-free cross-layer gate; no learned recurrent trajectory state \\
+ProMoE \citep{song2024} & Intermediate-result predictors & Frozen & Native route retained & Average 2.20$\times$ prefill and 2.07$\times$ decode & Proactive caching with staged predictors; no causal base-plus-recurrent correction \\
+Pre-Attention \citep{zhu2025} & Same-layer pre-attention activations & Frozen & Native route retained & 93.03--97.62\% prediction accuracy & Very lightweight same-layer ranking; not a trajectory sidecar \\
+SpecPrefetch \citep{kong2026} & Shared low-rank next-layer adapter & Frozen & Native route retained & Up to 20\% mobile decode throughput & Closest exact-transfer neighbor; Dragon adds recurrent state and a true causal-base comparator \\
+APEX \citep{kanani2026} & Pre-attention router with learned confidence and budget & Frozen & Exact mode available & Up to 26\% latency and 41\% EDP reduction & Strong adaptive budget; complementary to Dragon's trajectory representation \\
+RMoE \citep{qiu2025} & GRU across layer routers & Retrained architecture & Native for retrained model & Quality and selection improvements & Establishes value of recurrence, but modifies the parent MoE during training \\
+PathMoE \citep{gu2026} & Constrained expert paths & Retrained architecture & Native for retrained model & Quality and robustness gains & Treats paths as architecture design; not a post-hoc serving retrofit \\
+Speculating Experts \citep{madan2026} & Internal-representation speculation & Frozen & May execute predicted experts & Up to 14\% TPOT reduction & More aggressive and may trade accuracy; Dragon never substitutes execution \\
+\Dragon & Layer-conditioned recurrent correction over $W_{L+1}x_L$ & Frozen & Native route retained and byte-audited & 6.03\% median host-local wall gain & Post-hoc trajectory distillation, untouched heldout, reversible residency, and exact mmap fallback \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\end{landscape}
+
+\subsection{Closest comparison: SpecPrefetch}
+
+SpecPrefetch shares Dragon's most important safety principle: predict candidates only for asynchronous transfer while leaving the frozen native router authoritative \citep{kong2026}. It reports the best average expert recall in 9 of 10 evaluated model-benchmark settings and up to 20\% mobile decoding-throughput improvement.
+
+Dragon differs in what it learns and how it is evaluated. SpecPrefetch uses a shared lightweight adapter from the current representation. Dragon maintains a layer-conditioned recurrent state, predicts a correction over the exact future-router projection, and requires a one-shot untouched prompt split against the true zero-correction base. Dragon also integrates reversible K64 residency and a champion/challenger path for later workload adaptation.
+
+We do not claim the current 6\% result numerically beats SpecPrefetch's 20\%; the settings are incomparable. We claim a distinct retrofit and evidence regime.
+
+\subsection{Strongest challenge: APEX}
+
+APEX places a prefetch router before attention and learns a token-dependent candidate budget, achieving over 99\% overlap accuracy and up to 26\% per-token latency reduction in its correctness-preserving mode \citep{kanani2026}. Its critique of fixed top-$k$ prefetch is valid: uncertainty varies by token.
+
+Dragon deliberately freezes P2 because its current host has a narrow I/O budget and because heldout P2 precision is already 98.27\%. The likely next system is not Dragon \emph{versus} APEX, but a Dragon trajectory representation feeding an adaptive P2/P4/abstention controller.
+
+\subsection{Evaluation discipline}
+
+Recent work shows that replay semantics and workload contamination can invert MoE cache conclusions \citep{zhang2026trace}. Our protocol addresses these risks through whole-prompt splits, exact source-to-target alignment, immutable hashes, selected-cold reset manifests, order-balanced live arms, and full capture equality rather than hit-rate-only claims. These controls do not create cross-hardware generality, but they make the supported host-local result harder to explain as leakage or cache-order contamination.
+
+\section{Guarded Continual Sidecar Learning}
+
+The deployed predictor is immutable within an inference process. It does not perform foreground SGD. Normal promoted runs may optionally record bounded v3 routing traces under hashed prompt/session identity without storing rendered prompt text.
+
+Periodically, completed traces are split by a stable prompt-hash rule into training and quarantine populations. A challenger warm-starts from the active champion and trains offline. Champion and challenger are replayed on the same quarantined future routes. Promotion requires all of the following:
+\begin{itemize}
+  \item positive lower $95\%$ prompt-cluster bound for P2 recall delta;
+  \item negative upper bound for exposed-demand byte delta;
+  \item conservative traffic at or below $1.03\times$ demand-only;
+  \item exact NumPy/Torch P2 semantics;
+  \item changed weights and immutable artifact hashes.
+\end{itemize}
+A rejected challenger cannot become the runtime plan. Registry activation is atomic, and the previous champion remains an immediate rollback target.
+
+This infrastructure closes the learning loop conceptually: normal inference produces future-route supervision. However, the current paper does not report a sequence of successful champion promotions or a scaling law. The system is implemented and gated; continual improvement remains future evidence.
+
+\section{Limitations}
+
+\begin{enumerate}
+  \item \textbf{Heldout population size.} The causal heldout test contains eight prompt clusters and four decode positions per prompt. The effect is consistent across the fixed split, but broader semantic and temporal coverage is needed.
+  \item \textbf{Runtime population size.} The promotion result uses four fixed-prompt pairs on one host. It is not a broad prompt-population or cross-hardware latency estimate.
+  \item \textbf{Unusual hardware.} The test bed uses old K80 GPUs, CPU MoE, mmap, a large host-RAM tier, and rotational storage. It is an informative stress case, not a representative modern deployment.
+  \item \textbf{Phase asymmetry.} The complete-answer gain was prefill-led and included a small decode regression. Persistent multi-turn decode must be evaluated separately.
+  \item \textbf{Recurrence isolation.} The selected recurrent sidecar beats the base, but a final matched feed-forward/detached-state control was not completed. Recurrence itself is therefore not causally isolated.
+  \item \textbf{Only P2 is promoted.} P4 and P8 remain diagnostic. No result authorizes wide speculative loading or exclusive predicted execution.
+  \item \textbf{No destructive pruning.} K64 is a reversible residency policy. The original long-tail experts remain necessary for exact behavior.
+  \item \textbf{No coalition-utility solution.} Dragon predicts future native demand, not the exact non-additive omission game from Paper 1.
+  \item \textbf{Continual learning not yet demonstrated longitudinally.} Champion/challenger machinery is implemented, but successful repeated promotions are not yet evidence.
+  \item \textbf{Artifact release boundary.} Large raw traces and the private quantized checkpoint are not included in the manuscript package. Reproduction code and aggregate evidence can be released separately subject to checkpoint licensing and storage constraints.
+\end{enumerate}
+
+\section{Future Work}
+
+\paragraph{Scaling law.}
+The existential question is answered: the sidecar can learn signal beyond the causal base. The next question is how recall, false-candidate rate, and exposed demand scale with prompts, trajectories, state width, and training compute.
+
+\paragraph{Matched feed-forward control.}
+A parameter- and feature-matched nonrecurrent or detached-state predictor should directly test whether the recurrent memory itself contributes beyond the latest observation.
+
+\paragraph{Adaptive budgets.}
+Use the recurrent state and calibrated margins to choose P2, P4, or abstention while preserving exact fallback.
+
+\paragraph{Lab-native co-training.}
+A future model lab could train an advisory trajectory sidecar during parent-model training, when every token already supplies full future-router supervision, then finalize it after freezing the parent checkpoint.
+
+\paragraph{Predictive quantization.}
+If expert demand is known early, storage format need not equal execution format. More aggressive archival representations could be reconstructed into executable precision only for predicted experts.
+
+\paragraph{Trajectory monitors.}
+The same state could supervise heads for externally labeled future outcomes such as route anomalies, uncertainty, hallucination, or known unsafe behaviors. Such monitors should remain additional signals, never sole safety boundaries.
+
+\paragraph{Demand and utility.}
+The long-term synthesis with Paper 1 is a two-stage controller: Dragon predicts which native experts will be requested; a separately validated coalition model estimates which of those computations are necessary under a fidelity budget.
+
+\section{Conclusion}
+
+\Dragon began with a simple observation: an earlier MoE state already contains useful information about which experts a later layer will select.
+
+The final system is simpler than the original hypothesis. Backward-growing curriculum did not win. Explicit residual surprise did not win. Random recurrent initialization was not a valid baseline. Static destructive pruning failed. A CUDA pager path failed its combined correctness/performance gate.
+
+What survived is a small causal recurrent correction over frozen future-router geometry.
+
+On untouched K3 prompts, that correction improves over the true $W_{L+1}x_L$ base. It converts 429 false P2 candidates into useful hits, removing exactly 2.103 GB (1.959 GiB) of exposed demand and overfetch in the heldout accounting. In the live runtime, those two high-confidence advisory candidates are converted into early residency of immutable original expert pages. With reversible K64 RAM residency and exact mmap fallback, all four controlled pairs improve wall time without changing the parent model's route or output.
+
+The governing systems principle is
+\begin{center}
+\fbox{\parbox{0.92\textwidth}{\centering\bfseries Use prediction to move exact weights earlier, never to decide what the model may compute.}}
+\end{center}
+More broadly, the result suggests that sparse models expose actionable information about their own computational future. Learning to decode that information is a path from sparse arithmetic to predictive streaming inference.
+
+\appendix
+\section{Claim Boundary}
+
+\subsection{Supported by the frozen evidence}
+\begin{itemize}
+  \item The selected Dragon artifact adds heldout P2 routing information beyond the true zero-correction future-router base.
+  \item Heldout P2 candidate precision is 98.27\% under the fixed two-candidate budget.
+  \item The prompt-cluster bootstrap interval for the frozen heldout recall gain is entirely positive on the precommitted split.
+  \item Advisory prefetch can make original GGUF expert pages resident before their native target router.
+  \item Controlled live P0/P2 comparisons preserve byte-identical model captures.
+  \item On the tested host, all four promoted controlled P2 pairs improve wall time while staying below the $1.03\times$ traffic gate.
+  \item K64 is useful as a reversible hot tier but unsafe as destructive pruning.
+\end{itemize}
+
+\subsection{Not supported}
+\begin{itemize}
+  \item Universal latency improvement across prompts, models, or hardware.
+  \item Universal superiority to APEX, SpecPrefetch, ProMoE, FATE, or other prefetch systems under a matched benchmark.
+  \item Safe omission of unpredicted experts or permanent pruning to K64.
+  \item A proven benefit from P4/P8.
+  \item A proven continual-learning scaling law.
+  \item A direct solution to exact local coalition-utility prediction.
+\end{itemize}
+
+\section{Evidence and Reproducibility Map}
+
+The implementation and reports are versioned in the \texttt{ternarytest} repository. The principal files are:
+\begin{itemize}
+  \item \texttt{src/ternary\_motifs/k3\_recurrent\_dragon.py}: causal NumPy/Torch model and artifact format;
+  \item \texttt{tools/train\_k3\_recurrent\_dragon.py}: deterministic CPU training;
+  \item \texttt{reports/kimi-k3-recurrent-dragon-heldout-results.md}: frozen heldout result;
+  \item \texttt{reports/kimi-k3-recurrent-dragon-population-corpus.md}: corpus and integrity protocol;
+  \item \texttt{reports/kimi-k3-expert-pruning-atlas-v1.md}: reversible K64 atlas;
+  \item \texttt{reports/kimi-k3-stigmergic-handoff.md}: live runtime evidence and negative results;
+  \item \texttt{tools/kimi\_k3\_recurrent\_prefetch\_completion.cpp}: exact advisory runtime;
+  \item \texttt{tools/evaluate\_k3\_recurrent\_shadow\_challenger.py}: champion/challenger gate.
+\end{itemize}
+
+Key immutable identities include:
+\begin{center}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.3cm}>{\ttfamily\raggedright\arraybackslash}X}
+Frozen decision & 476181813d07ea86664b451e73f73946fabae93b65ba7d9cbcd35cec29a53422 \\
+Frozen weights & ccd713e985eafc7a0dfd93675cf2bdf5d1659fbcd16967568dc8b9c4a644c598 \\
+Heldout records & 82dc354422d3e3929993e9fc58f2f2061bd3d1d5924f62db4791c989a0750b53 \\
+Frozen evaluation & e2b249959e7c2d44bfadc53de5abd7556f829f3a5eeb5f7d7ca83a44e04f567f \\
+\end{tabularx}
+\end{center}
+
+\begin{thebibliography}{99}
+
+\bibitem[Castorena(2026a)]{castorenaCoalition2026}
+Jared Castorena.
+\newblock The exact local coalition game of sparse mixture-of-experts: Exhaustive counterfactual measurement reveals non-additive expert damage.
+\newblock Preprint, 2026.
+
+\bibitem[Castorena(2026b)]{castorenaDragon2026}
+Jared Castorena.
+\newblock Chasing the Dragon: mechanism findings and causal transport checkpoints.
+\newblock Technical report, 2026.
+
+\bibitem[Fang et~al.(2025)Fang, Hong, Huang, Lyu, Chen, Yu, Yu, and Zheng]{fang2025}
+Zhiyuan Fang, Zicong Hong, Yuegui Huang, Yufeng Lyu, Wuhui Chen, Yue Yu, Fan Yu, and Zibin Zheng.
+\newblock Fate: Fast edge inference of mixture-of-experts models via cross-layer gate.
+\newblock arXiv:2502.12224, 2025.
+
+\bibitem[Gu et~al.(2026)Gu, Likhomanenko, Thilak, Ramapuram, and Jaitly]{gu2026}
+Zijin Gu, Tatiana Likhomanenko, Vimal Thilak, Jason Ramapuram, and Navdeep Jaitly.
+\newblock Path-constrained mixture-of-experts.
+\newblock arXiv:2603.18297, 2026.
+
+\bibitem[Hoang et~al.(2026)Hoang, Jaiswal, Samragh, and Cho]{hoang2026}
+Duc Hoang, Ajay Jaiswal, Mohammad Samragh, and Minsik Cho.
+\newblock SpecMD: A comprehensive study on speculative expert prefetching.
+\newblock arXiv:2602.03921, 2026.
+
+\bibitem[Kanani et~al.(2026)Kanani, Badawi, and Ogras]{kanani2026}
+Alish Kanani, Layan Badawi, and Umit Y. Ogras.
+\newblock APEX: Adaptive expert prefetching for memory-efficient edge MoE inference.
+\newblock arXiv:2608.11688, 2026.
+
+\bibitem[Kimi Team(2026)]{kimi2026}
+Kimi Team.
+\newblock Kimi K3: Open frontier intelligence.
+\newblock arXiv:2607.24653, 2026.
+
+\bibitem[Kong et~al.(2026)Kong, Meng, Wang, Qiu, Hu, Zhou, and Ge]{kong2026}
+Jinwei Kong, Runqi Meng, Fanyi Wang, Wentao Qiu, Haotian Hu, Yongjian Zhou, and Zhenhua Ge.
+\newblock SpecPrefetch: Parameter-efficient expert prefetching for sparse MoE foundation models.
+\newblock arXiv:2607.24787, 2026.
+
+\bibitem[Madan et~al.(2026)Madan, Singhania, Bhatele, Goldstein, and Panda]{madan2026}
+Vivan Madan, Prajwal Singhania, Abhinav Bhatele, Tom Goldstein, and Ashwinee Panda.
+\newblock Speculating experts accelerates inference for mixture-of-experts.
+\newblock arXiv:2603.19289, 2026.
+
+\bibitem[Qiu et~al.(2025)Qiu, Huang, Cheng, Zhou, Wang, Titov, and Fu]{qiu2025}
+Zihan Qiu, Zeyu Huang, Shuang Cheng, Yizhi Zhou, Zili Wang, Ivan Titov, and Jie Fu.
+\newblock Layerwise recurrent router for mixture-of-experts.
+\newblock In \emph{International Conference on Learning Representations}, 2025.
+
+\bibitem[Shazeer et~al.(2017)Shazeer, Mirhoseini, Maziarz, Davis, Le, Hinton, and Dean]{shazeer2017}
+Noam Shazeer, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc V. Le, Geoffrey E. Hinton, and Jeff Dean.
+\newblock Outrageously large neural networks: The sparsely-gated mixture-of-experts layer.
+\newblock In \emph{International Conference on Learning Representations}, 2017.
+
+\bibitem[Song et~al.(2024)Song, Zhong, Chen, and Chen]{song2024}
+Xiaoniu Song, Zihang Zhong, Rong Chen, and Haibo Chen.
+\newblock ProMoE: Fast MoE-based LLM serving using proactive caching.
+\newblock arXiv:2410.22134, 2024; revised 2025.
+
+\bibitem[Xue et~al.(2024)Xue, Fu, Lu, Mai, and Marina]{xue2024}
+Leyang Xue, Yao Fu, Zhan Lu, Luo Mai, and Mahesh Marina.
+\newblock MoE-Infinity: Efficient MoE inference on personal machines with sparsity-aware expert cache.
+\newblock arXiv:2401.14361, 2024; revised 2025.
+
+\bibitem[Zhang(2026)]{zhang2026trace}
+Yu Zhang.
+\newblock When does trace-driven evaluation mislead MoE expert caching? Replay semantics, workload contamination, and operating regimes.
+\newblock arXiv:2608.07911, 2026.
+
+\bibitem[Zhu et~al.(2025)Zhu, Bohl, Oester, and Alonso]{zhu2025}
+Shien Zhu, Samuel Bohl, Robin Oester, and Gustavo Alonso.
+\newblock Pre-attention expert prediction and prefetching for mixture-of-experts large language models.
+\newblock arXiv:2511.10676, 2025.
+
+\end{thebibliography}
+
+\end{document}
